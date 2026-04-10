@@ -1,75 +1,106 @@
-import { useState, useEffect } from 'react';
-import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { doc, collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { buildLeaderboardRows } from '../utils/leaderboard';
-import { Link } from 'react-router-dom';
 
 const TRIP_ID = 'destin-2026';
 
 export default function LeaderboardScreen() {
-	const [rows, setRows] = useState(null);
-	const [error, setError] = useState(null);
 	const [trip, setTrip] = useState(null);
+	const [rounds, setRounds] = useState([]);
+	const [players, setPlayers] = useState([]);
+	const [scorecards, setScorecards] = useState([]);
+	const [error, setError] = useState(null);
 
 	useEffect(() => {
-		const fetchAll = async () => {
-			try {
-				const tripRef = doc(db, 'trips', TRIP_ID);
-				const roundsRef = collection(db, 'trips', TRIP_ID, 'rounds');
-				const playersRef = collection(db, 'trips', TRIP_ID, 'players');
-				const scorecardsRef = collection(db, 'trips', TRIP_ID, 'scorecards');
+		setError(null);
 
-				const [tripSnap, roundsSnap, playersSnap, scorecardsSnap] =
-					await Promise.all([
-						getDoc(tripRef),
-						getDocs(roundsRef),
-						getDocs(playersRef),
-						getDocs(scorecardsRef),
-					]);
+		const tripRef = doc(db, 'trips', TRIP_ID);
+		const roundsRef = collection(db, 'trips', TRIP_ID, 'rounds');
+		const playersRef = collection(db, 'trips', TRIP_ID, 'players');
+		const scorecardsRef = collection(db, 'trips', TRIP_ID, 'scorecards');
 
-				if (!tripSnap.exists()) {
+		const unsubTrip = onSnapshot(
+			tripRef,
+			(snapshot) => {
+				if (!snapshot.exists()) {
 					setError('Trip not found.');
+					setTrip(null);
 					return;
 				}
 
-				const trip = { id: tripSnap.id, ...tripSnap.data() };
-				setTrip(trip);
-				const rounds = roundsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-				const players = playersSnap.docs.map((d) => ({
-					id: d.id,
-					...d.data(),
-				}));
-				const scorecards = scorecardsSnap.docs.map((d) => ({
-					id: d.id,
-					...d.data(),
-				}));
+				setTrip({ id: snapshot.id, ...snapshot.data() });
+			},
+			(err) => setError(err.message),
+		);
 
-				setRows(
-					buildLeaderboardRows({
-						players,
-						rounds,
-						scorecards,
-						currentRoundId: trip.currentRoundId,
-					}),
-				);
-			} catch (err) {
-				setError(err.message);
-			}
+		const unsubRounds = onSnapshot(
+			roundsRef,
+			(snapshot) => {
+				setRounds(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+			},
+			(err) => setError(err.message),
+		);
+
+		const unsubPlayers = onSnapshot(
+			playersRef,
+			(snapshot) => {
+				setPlayers(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+			},
+			(err) => setError(err.message),
+		);
+
+		const unsubScorecards = onSnapshot(
+			scorecardsRef,
+			(snapshot) => {
+				setScorecards(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+			},
+			(err) => setError(err.message),
+		);
+
+		return () => {
+			unsubTrip();
+			unsubRounds();
+			unsubPlayers();
+			unsubScorecards();
 		};
-
-		fetchAll();
 	}, []);
 
-	if (error) return <p>Error: {error}</p>;
-	if (rows === null || trip === null) return <p>Loading...</p>;
+	if (error) {
+		return (
+			<section>
+				<h1>Leaderboard</h1>
+				<p>Error: {error}</p>
+			</section>
+		);
+	}
+
+	if (!trip) {
+		return (
+			<section>
+				<h1>Leaderboard</h1>
+				<p>Loading...</p>
+			</section>
+		);
+	}
+
+	const rows = buildLeaderboardRows({
+		players,
+		rounds,
+		scorecards,
+		currentRoundId: trip.currentRoundId,
+	});
 
 	return (
 		<section>
 			<h1>Leaderboard</h1>
+
 			<p>
-				<Link to={`/round/${trip.currentRoundId}`}>Go to Current Round</Link>
+				<Link to={`/round/${trip.currentRoundId}`}>View Current Round</Link>
 			</p>
-			<table>
+
+			<table cellPadding='8'>
 				<thead>
 					<tr>
 						<th>#</th>

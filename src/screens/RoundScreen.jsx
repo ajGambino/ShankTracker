@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { doc, collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { buildLeaderboardRows } from '../utils/leaderboard';
 
@@ -11,79 +11,77 @@ export default function RoundScreen() {
 
 	const [trip, setTrip] = useState(null);
 	const [round, setRound] = useState(null);
-	const [rows, setRows] = useState(null);
+	const [rounds, setRounds] = useState([]);
+	const [players, setPlayers] = useState([]);
+	const [scorecards, setScorecards] = useState([]);
 	const [error, setError] = useState(null);
 
 	useEffect(() => {
-		const fetchRoundData = async () => {
-			try {
-				setError(null);
+		setError(null);
 
-				const tripRef = doc(db, 'trips', TRIP_ID);
-				const roundRef = doc(db, 'trips', TRIP_ID, 'rounds', roundId);
-				const roundsRef = collection(db, 'trips', TRIP_ID, 'rounds');
-				const playersRef = collection(db, 'trips', TRIP_ID, 'players');
-				const scorecardsRef = collection(db, 'trips', TRIP_ID, 'scorecards');
+		const tripRef = doc(db, 'trips', TRIP_ID);
+		const roundRef = doc(db, 'trips', TRIP_ID, 'rounds', roundId);
+		const roundsRef = collection(db, 'trips', TRIP_ID, 'rounds');
+		const playersRef = collection(db, 'trips', TRIP_ID, 'players');
+		const scorecardsRef = collection(db, 'trips', TRIP_ID, 'scorecards');
 
-				const [tripSnap, roundSnap, roundsSnap, playersSnap, scorecardsSnap] =
-					await Promise.all([
-						getDoc(tripRef),
-						getDoc(roundRef),
-						getDocs(roundsRef),
-						getDocs(playersRef),
-						getDocs(scorecardsRef),
-					]);
-
-				if (!tripSnap.exists()) {
+		const unsubTrip = onSnapshot(
+			tripRef,
+			(snapshot) => {
+				if (!snapshot.exists()) {
 					setError('Trip not found.');
+					setTrip(null);
 					return;
 				}
+				setTrip({ id: snapshot.id, ...snapshot.data() });
+			},
+			(err) => setError(err.message),
+		);
 
-				if (!roundSnap.exists()) {
+		const unsubRound = onSnapshot(
+			roundRef,
+			(snapshot) => {
+				if (!snapshot.exists()) {
 					setError('Round not found.');
+					setRound(null);
 					return;
 				}
+				setRound({ id: snapshot.id, ...snapshot.data() });
+			},
+			(err) => setError(err.message),
+		);
 
-				const tripData = { id: tripSnap.id, ...tripSnap.data() };
-				const roundData = { id: roundSnap.id, ...roundSnap.data() };
-				const rounds = roundsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-				const players = playersSnap.docs.map((d) => ({
-					id: d.id,
-					...d.data(),
-				}));
-				const scorecards = scorecardsSnap.docs.map((d) => ({
-					id: d.id,
-					...d.data(),
-				}));
+		const unsubRounds = onSnapshot(
+			roundsRef,
+			(snapshot) => {
+				setRounds(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+			},
+			(err) => setError(err.message),
+		);
 
-				const leaderboardRows = buildLeaderboardRows({
-					players,
-					rounds,
-					scorecards,
-					currentRoundId: roundId,
-				});
+		const unsubPlayers = onSnapshot(
+			playersRef,
+			(snapshot) => {
+				setPlayers(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+			},
+			(err) => setError(err.message),
+		);
 
-				const roundRows = [...leaderboardRows].sort((a, b) => {
-					if (a.todayRaw !== b.todayRaw) {
-						return a.todayRaw - b.todayRaw;
-					}
+		const unsubScorecards = onSnapshot(
+			scorecardsRef,
+			(snapshot) => {
+				setScorecards(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+			},
+			(err) => setError(err.message),
+		);
 
-					if (a.projectedRaw !== b.projectedRaw) {
-						return a.projectedRaw - b.projectedRaw;
-					}
-
-					return a.name.localeCompare(b.name);
-				});
-
-				setTrip(tripData);
-				setRound(roundData);
-				setRows(roundRows);
-			} catch (err) {
-				setError(err.message || 'Something went wrong.');
-			}
+		return () => {
+			unsubTrip();
+			unsubRound();
+			unsubRounds();
+			unsubPlayers();
+			unsubScorecards();
 		};
-
-		fetchRoundData();
 	}, [roundId]);
 
 	if (error) {
@@ -95,7 +93,7 @@ export default function RoundScreen() {
 		);
 	}
 
-	if (!round || !rows || !trip) {
+	if (!trip || !round) {
 		return (
 			<section>
 				<h1>Round</h1>
@@ -103,6 +101,25 @@ export default function RoundScreen() {
 			</section>
 		);
 	}
+
+	const leaderboardRows = buildLeaderboardRows({
+		players,
+		rounds,
+		scorecards,
+		currentRoundId: roundId,
+	});
+
+	const roundRows = [...leaderboardRows].sort((a, b) => {
+		if (a.todayRaw !== b.todayRaw) {
+			return a.todayRaw - b.todayRaw;
+		}
+
+		if (a.projectedRaw !== b.projectedRaw) {
+			return a.projectedRaw - b.projectedRaw;
+		}
+
+		return a.name.localeCompare(b.name);
+	});
 
 	return (
 		<section>
@@ -118,7 +135,7 @@ export default function RoundScreen() {
 				<section>
 					<h2>Hole Pars</h2>
 					<div style={{ overflowX: 'auto' }}>
-						<table>
+						<table cellPadding='8'>
 							<thead>
 								<tr>
 									{round.holePars.map((_, index) => (
@@ -142,7 +159,7 @@ export default function RoundScreen() {
 
 			<section>
 				<h2>Round Leaderboard</h2>
-				<table>
+				<table cellPadding='8'>
 					<thead>
 						<tr>
 							<th>#</th>
@@ -154,7 +171,7 @@ export default function RoundScreen() {
 						</tr>
 					</thead>
 					<tbody>
-						{rows.map((row, index) => (
+						{roundRows.map((row, index) => (
 							<tr key={row.playerId}>
 								<td>{index + 1}</td>
 								<td>{row.name}</td>

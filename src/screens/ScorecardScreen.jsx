@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import {
 	sumHoleScores,
@@ -45,66 +45,71 @@ export default function ScorecardScreen() {
 	const [error, setError] = useState(null);
 
 	useEffect(() => {
-		const fetchData = async () => {
-			try {
-				setLoading(true);
-				setError(null);
+		if (!roundId || !playerId) return;
 
-				const roundRef = doc(db, 'trips', TRIP_ID, 'rounds', roundId);
-				const playerRef = doc(db, 'trips', TRIP_ID, 'players', playerId);
-				const scorecardRef = doc(
-					db,
-					'trips',
-					TRIP_ID,
-					'scorecards',
-					`${roundId}_${playerId}`,
-				);
+		setLoading(true);
 
-				const [roundSnap, playerSnap, scorecardSnap] = await Promise.all([
-					getDoc(roundRef),
-					getDoc(playerRef),
-					getDoc(scorecardRef),
-				]);
+		const roundRef = doc(db, 'trips', TRIP_ID, 'rounds', roundId);
+		const playerRef = doc(db, 'trips', TRIP_ID, 'players', playerId);
+		const scorecardRef = doc(
+			db,
+			'trips',
+			TRIP_ID,
+			'scorecards',
+			`${roundId}_${playerId}`,
+		);
 
-				if (!roundSnap.exists()) {
-					setError('Round not found.');
-					return;
-				}
+		let loaded = {
+			round: false,
+			player: false,
+			scorecard: false,
+		};
 
-				if (!playerSnap.exists()) {
-					setError('Player not found.');
-					return;
-				}
-
-				const roundData = { id: roundSnap.id, ...roundSnap.data() };
-				const playerData = { id: playerSnap.id, ...playerSnap.data() };
-
-				setRound(roundData);
-				setPlayer(playerData);
-
-				if (scorecardSnap.exists()) {
-					const existingScores = normalizeHoleScores(
-						scorecardSnap.data().holeScores,
-					);
-					setHoleScores(existingScores);
-					setDraftScores(
-						existingScores.map((score) => (score ?? '').toString()),
-					);
-					setIsExistingScorecard(true);
-				} else {
-					const emptyScores = createEmptyHoleScores();
-					setHoleScores(emptyScores);
-					setDraftScores(emptyScores.map(() => ''));
-					setIsExistingScorecard(false);
-				}
-			} catch (err) {
-				setError(err.message || 'Something went wrong.');
-			} finally {
+		const checkLoaded = () => {
+			if (loaded.round && loaded.player && loaded.scorecard) {
 				setLoading(false);
 			}
 		};
 
-		fetchData();
+		const unsubRound = onSnapshot(roundRef, (snap) => {
+			if (snap.exists()) {
+				setRound({ id: snap.id, ...snap.data() });
+			}
+			loaded.round = true;
+			checkLoaded();
+		});
+
+		const unsubPlayer = onSnapshot(playerRef, (snap) => {
+			if (snap.exists()) {
+				setPlayer({ id: snap.id, ...snap.data() });
+			}
+			loaded.player = true;
+			checkLoaded();
+		});
+
+		const unsubScorecard = onSnapshot(scorecardRef, (snap) => {
+			if (snap.exists()) {
+				const existingScores = normalizeHoleScores(snap.data().holeScores);
+
+				setHoleScores(existingScores);
+				setDraftScores(existingScores.map((score) => (score ?? '').toString()));
+				setIsExistingScorecard(true);
+			} else {
+				const emptyScores = createEmptyHoleScores();
+				setHoleScores(emptyScores);
+				setDraftScores(emptyScores.map(() => ''));
+				setIsExistingScorecard(false);
+			}
+
+			loaded.scorecard = true;
+			checkLoaded();
+		});
+
+		return () => {
+			unsubRound();
+			unsubPlayer();
+			unsubScorecard();
+		};
 	}, [roundId, playerId]);
 
 	const stats = useMemo(() => {
@@ -329,13 +334,24 @@ export default function ScorecardScreen() {
 								<td>
 									<input
 										type='number'
+										inputMode='numeric'
+										pattern='[0-9]*'
 										min='1'
 										max='15'
 										step='1'
 										value={draftScores[index]}
 										onChange={(e) => handleDraftChange(index, e.target.value)}
 										onBlur={() => saveHoleScore(index)}
-										style={{ width: '70px' }}
+										onFocus={(e) => {
+											e.target.select();
+											setTimeout(() => {
+												e.target.scrollIntoView({
+													behavior: 'smooth',
+													block: 'center',
+												});
+											}, 300);
+										}}
+										style={{ width: '70px', fontSize: '16px' }}
 									/>
 								</td>
 								<td>
