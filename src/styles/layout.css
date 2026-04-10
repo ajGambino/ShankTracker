@@ -1,0 +1,50 @@
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+
+.app-header {
+  background: var(--color-nav-bg);
+  color: var(--color-nav-text);
+  padding: 0.75rem 1rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.app-nav {
+  background: var(--color-nav-bg);
+  display: flex;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-link {
+  flex: 1;
+  text-align: center;
+  padding: 0.6rem 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  border-bottom: 3px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.nav-link:hover {
+  color: var(--color-nav-text);
+}
+
+.nav-link--active {
+  color: var(--color-nav-active);
+  border-bottom-color: var(--color-nav-active);
+}
+
+.app-content {
+  flex: 1;
+  padding: 1.25rem 1rem;
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+}
