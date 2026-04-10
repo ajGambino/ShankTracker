@@ -107,8 +107,7 @@ export default function LeaderboardScreen() {
 						<th>Name</th>
 						<th>Total</th>
 						<th>Thru</th>
-						<th>Today</th>
-						<th>Proj</th>
+						<th>Today (to Par)</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -119,7 +118,6 @@ export default function LeaderboardScreen() {
 							<td>{row.totalDisplay}</td>
 							<td>{row.isFinished ? 'F' : row.thru}</td>
 							<td>{row.todayDisplay}</td>
-							<td>{row.projectedDisplay}</td>
 						</tr>
 					))}
 				</tbody>

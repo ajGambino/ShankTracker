@@ -165,8 +165,8 @@ export default function RoundScreen() {
 							<th>#</th>
 							<th>Name</th>
 							<th>Thru</th>
-							<th>Today</th>
-							<th>Proj</th>
+							<th>Today (to Par)</th>
+							<th>Pace</th>
 							<th>Scorecard</th>
 						</tr>
 					</thead>

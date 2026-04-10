@@ -4,11 +4,11 @@ import { doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import {
 	sumHoleScores,
+	sumCompletedHolePars,
 	countCompletedHoles,
 	getExpectedSoFar,
 	getProjectedRoundTotal,
 	getCurrentRelativeScore,
-	getProjectedRelativeScore,
 	formatRelativeScore,
 } from '../utils/leaderboard';
 
@@ -117,38 +117,36 @@ export default function ScorecardScreen() {
 			return null;
 		}
 
+		const holePars =
+			round.holePars?.length === 18 ? round.holePars : Array(18).fill(4);
+		const totalPar = round.totalPar ?? holePars.reduce((a, b) => a + b, 0);
+
 		const actualTotal = sumHoleScores(holeScores);
 		const thru = countCompletedHoles(holeScores);
 		const expectedSoFar = getExpectedSoFar(
 			player.declaredAverage,
-			round.totalPar,
-			round.holePars,
+			totalPar,
+			holePars,
 			holeScores,
 		);
 		const projectedTotal = getProjectedRoundTotal(
 			player.declaredAverage,
-			round.totalPar,
-			round.holePars,
+			totalPar,
+			holePars,
 			holeScores,
 		);
 
 		const isFinished = thru === 18;
 
-		const currentRelative = isFinished
+		const completedPar = sumCompletedHolePars(holePars, holeScores);
+		const todayVsPar = actualTotal - completedPar;
+
+		const pace = isFinished
 			? actualTotal - player.declaredAverage
 			: getCurrentRelativeScore(
 					player.declaredAverage,
-					round.totalPar,
-					round.holePars,
-					holeScores,
-				);
-
-		const projectedRelative = isFinished
-			? currentRelative
-			: getProjectedRelativeScore(
-					player.declaredAverage,
-					round.totalPar,
-					round.holePars,
+					totalPar,
+					holePars,
 					holeScores,
 				);
 
@@ -157,8 +155,8 @@ export default function ScorecardScreen() {
 			thru,
 			expectedSoFar,
 			projectedTotal,
-			currentRelative,
-			projectedRelative,
+			todayVsPar,
+			pace,
 			isFinished,
 		};
 	}, [round, player, holeScores]);
@@ -293,14 +291,12 @@ export default function ScorecardScreen() {
 				<p>Thru: {stats.isFinished ? 'F' : stats.thru}</p>
 				<p>
 					Today:{' '}
-					{formatRelativeScore(stats.currentRelative, {
-						decimals: stats.isFinished ? 0 : 1,
-					})}
+					{formatRelativeScore(stats.todayVsPar, { decimals: 0 })}
 				</p>
 				<p>
-					Projected:{' '}
-					{formatRelativeScore(stats.projectedRelative, {
-						decimals: stats.isFinished ? 0 : 1,
+					Pace:{' '}
+					{formatRelativeScore(stats.pace, {
+						decimals: stats.thru > 0 && !stats.isFinished ? 1 : 0,
 					})}
 				</p>
 				<p>Actual Total: {stats.actualTotal}</p>
@@ -323,7 +319,7 @@ export default function ScorecardScreen() {
 					</tr>
 				</thead>
 				<tbody>
-					{round.holePars.map((par, index) => {
+					{(round.holePars?.length === 18 ? round.holePars : Array(18).fill(4)).map((par, index) => {
 						const score = holeScores[index];
 						const isSaving = savingHole === index;
 

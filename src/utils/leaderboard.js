@@ -153,26 +153,27 @@ export function buildLeaderboardRows({
 
 		let thru = 0;
 		let isFinished = false;
-		let todayRaw = 0;
-		let projectedRaw = 0;
+		let todayVsParRaw = 0;
+		let todayVsAvgRaw = 0;
 
 		if (currentSc && currentRound) {
 			thru = countCompletedHoles(currentSc.holeScores);
 			isFinished = thru === 18;
 
+			const actualSoFar = sumHoleScores(currentSc.holeScores);
+			const completedPar = sumCompletedHolePars(
+				currentRound.holePars,
+				currentSc.holeScores,
+			);
+
+			// Real golf score vs par
+			todayVsParRaw = actualSoFar - completedPar;
+
+			// Score vs declared average (handicap-adjusted)
 			if (isFinished) {
-				// Round is done — use the stored final total
-				todayRaw = currentSc.actualTotal - declaredAverage;
-				projectedRaw = todayRaw;
+				todayVsAvgRaw = currentSc.actualTotal - declaredAverage;
 			} else if (thru > 0) {
-				// Round in progress — compare actual vs par-weighted expectation
-				todayRaw = getCurrentRelativeScore(
-					declaredAverage,
-					currentRound.totalPar,
-					currentRound.holePars,
-					currentSc.holeScores,
-				);
-				projectedRaw = getProjectedRelativeScore(
+				todayVsAvgRaw = getCurrentRelativeScore(
 					declaredAverage,
 					currentRound.totalPar,
 					currentRound.holePars,
@@ -191,7 +192,7 @@ export function buildLeaderboardRows({
 			}
 		}
 
-		const totalRaw = priorTotal + todayRaw;
+		const totalRaw = priorTotal + todayVsAvgRaw;
 
 		const liveRound = !isFinished && thru > 0;
 
@@ -201,15 +202,17 @@ export function buildLeaderboardRows({
 			declaredAverage,
 			thru,
 			isFinished,
-			todayRaw,
-			todayDisplay: formatRelativeScore(todayRaw, {
-				decimals: liveRound ? 0 : 1,
+			todayRaw: todayVsParRaw,
+			todayDisplay: formatRelativeScore(todayVsParRaw, {
+				decimals: 0,
 			}),
-			projectedRaw,
-			projectedDisplay: formatRelativeScore(projectedRaw, { decimals: 1 }),
+			projectedRaw: todayVsAvgRaw,
+			projectedDisplay: formatRelativeScore(todayVsAvgRaw, {
+				decimals: liveRound ? 1 : 0,
+			}),
 			totalRaw,
 			totalDisplay: formatRelativeScore(totalRaw, {
-				decimals: liveRound ? 0 : 1,
+				decimals: liveRound ? 1 : 0,
 			}),
 		};
 	});
