@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { useAuth } from '../context/AuthContext';
 import {
 	sumHoleScores,
 	sumCompletedHolePars,
@@ -34,6 +35,8 @@ function normalizeHoleScores(holeScores) {
 
 export default function ScorecardScreen() {
 	const { roundId, playerId } = useParams();
+	const { currentPlayer, isAdmin } = useAuth();
+	const canEdit = currentPlayer?.id === playerId || isAdmin;
 
 	const [round, setRound] = useState(null);
 	const [player, setPlayer] = useState(null);
@@ -183,7 +186,7 @@ export default function ScorecardScreen() {
 	};
 
 	const saveHoleScore = async (holeIndex) => {
-		if (!round || !player) return;
+		if (!round || !player || !canEdit) return;
 
 		const rawValue = draftScores[holeIndex];
 		const parsed = rawValue === '' ? null : Number.parseInt(rawValue, 10);
@@ -338,6 +341,7 @@ export default function ScorecardScreen() {
 										value={draftScores[index]}
 										onChange={(e) => handleDraftChange(index, e.target.value)}
 										onBlur={() => saveHoleScore(index)}
+										disabled={!canEdit}
 										onFocus={(e) => {
 											e.target.select();
 											setTimeout(() => {
