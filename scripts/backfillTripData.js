@@ -3,7 +3,7 @@
  *
  * What it does:
  *   1. Reads all player docs and backfills memberUids / adminUids on the trip doc
- *   2. Seeds each round doc with date, teeTime, totalPar, holePars from the course JSONs
+ *   2. Seeds each round doc with date, teeTime, totalPar, holePars, holeYardages from the course JSONs
  *
  * Setup:
  *   npm install --save-dev firebase-admin
@@ -83,8 +83,9 @@ async function main() {
 
     const courseJson = loadCourseJson(jsonPath);
     const tee = getTeeData(courseJson, TEE_SELECTION.gender, TEE_SELECTION.index);
-    const holePars = tee.holes.map((h) => h.par);
-    const holeParsSum = holePars.reduce((a, b) => a + b, 0);
+    const holePars     = tee.holes.map((h) => h.par);
+    const holeYardages = tee.holes.map((h) => h.yardage);
+    const holeParsSum  = holePars.reduce((a, b) => a + b, 0);
 
     if (holeParsSum !== tee.par_total) {
       throw new Error(
@@ -92,10 +93,17 @@ async function main() {
       );
     }
 
+    if (holeYardages.length !== holePars.length) {
+      throw new Error(
+        `Course "${entry.courseKey}" tee "${tee.tee_name}": holeYardages.length=${holeYardages.length} !== holePars.length=${holePars.length}`
+      );
+    }
+
     courseMap[entry.courseKey] = {
-      teeName:   tee.tee_name,
-      totalPar:  tee.par_total,
+      teeName:       tee.tee_name,
+      totalPar:      tee.par_total,
       holePars,
+      holeYardages,
     };
 
     console.log(
@@ -156,10 +164,11 @@ async function main() {
 
     const course = courseMap[entry.courseKey];
     const update = {
-      date:     entry.date,
-      teeTime:  entry.teeTime,
-      totalPar: course.totalPar,
-      holePars: course.holePars,
+      date:          entry.date,
+      teeTime:       entry.teeTime,
+      totalPar:      course.totalPar,
+      holePars:      course.holePars,
+      holeYardages:  course.holeYardages,
     };
 
     await db

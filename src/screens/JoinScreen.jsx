@@ -99,48 +99,55 @@ export default function JoinScreen() {
 	};
 
 	return (
-		<section style={{ padding: '2rem', maxWidth: '480px' }}>
+		<section className='join-screen'>
 			<h1>ShankTracker</h1>
 
-			{error ? <p style={{ color: 'red' }}>Error: {error}</p> : null}
+			{error ? <p className='error-msg'>{error}</p> : null}
+
+			{step === 'sign-in' && (
+				<>
+					<h2>Sign In</h2>
+					<button
+						className='btn-primary'
+						onClick={handleSignIn}
+						disabled={loadingAction}
+						style={{ width: '100%' }}
+					>
+						{loadingAction ? 'Signing in…' : 'Sign in with Google'}
+					</button>
+				</>
+			)}
 
 			{step === 'enter-trip' && (
 				<>
 					<h2>Enter Trip Code</h2>
-					<div
-						style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}
-					>
+					<div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
 						<input
 							value={tripCodeInput}
 							onChange={(e) => setTripCodeInput(e.target.value)}
 							onKeyDown={(e) => e.key === 'Enter' && handleTripContinue()}
 							placeholder='e.g. destin-2026'
-							style={{ fontSize: '16px', flex: 1 }}
+							style={{ flex: 1 }}
 						/>
-						<button onClick={handleTripContinue} disabled={loadingAction}>
+						<button
+							className='btn-primary'
+							onClick={handleTripContinue}
+							disabled={loadingAction}
+						>
 							{loadingAction ? 'Checking…' : 'Continue'}
 						</button>
 					</div>
 				</>
 			)}
 
-			{step === 'sign-in' && (
-				<>
-					<h2>Sign In</h2>
-					<button onClick={handleSignIn} disabled={loadingAction}>
-						{loadingAction ? 'Signing in…' : 'Sign in with Google'}
-					</button>
-				</>
-			)}
-
 			{step === 'claim-player' && (
 				<>
 					<h2>Who are you?</h2>
-					<p>Select your name to join the trip.</p>
+					<p className='text-muted text-sm'>Select your name to join the trip.</p>
 					{unclaimedPlayers.length === 0 ? (
 						<p>All players already claimed. Contact your trip admin.</p>
 					) : (
-						<ul style={{ listStyle: 'none', padding: 0 }}>
+						<ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1rem' }}>
 							{unclaimedPlayers.map((p) => (
 								<li key={p.id} style={{ marginBottom: '0.5rem' }}>
 									<button
@@ -150,11 +157,11 @@ export default function JoinScreen() {
 											fontSize: '16px',
 											width: '100%',
 											textAlign: 'left',
-											padding: '0.5rem 0.75rem',
+											padding: '0.6rem 0.75rem',
 										}}
 									>
 										{claiming === p.id ? 'Claiming…' : p.name}
-										<small style={{ marginLeft: '1rem', opacity: 0.6 }}>
+										<small style={{ marginLeft: '0.75rem', color: 'var(--color-text-muted)' }}>
 											Avg: {p.declaredAverage}
 										</small>
 									</button>
@@ -162,20 +169,9 @@ export default function JoinScreen() {
 							))}
 						</ul>
 					)}
-					<p>
-						<button
-							onClick={handleSignOut}
-							style={{
-								background: 'none',
-								border: 'none',
-								cursor: 'pointer',
-								textDecoration: 'underline',
-								padding: 0,
-							}}
-						>
-							Sign out
-						</button>
-					</p>
+					<button className='btn-ghost' onClick={handleSignOut}>
+						Sign out
+					</button>
 				</>
 			)}
 		</section>

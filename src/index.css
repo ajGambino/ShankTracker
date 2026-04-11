@@ -38,3 +38,176 @@ h1, h2, h3 {
 p {
   margin: 0 0 1rem;
 }
+
+/* ── Buttons ───────────────────────────────────────────────── */
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.4;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--color-text);
+  transition: background 0.12s, border-color 0.12s;
+}
+
+button:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #bbb;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn-primary {
+  background: var(--color-nav-bg);
+  color: #fff;
+  border-color: var(--color-nav-bg);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #2a2a46;
+  border-color: #2a2a46;
+}
+
+.btn-ghost {
+  background: none;
+  border-color: transparent;
+  padding: 0;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  text-decoration: underline;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: none;
+  border-color: transparent;
+  color: var(--color-text);
+}
+
+/* ── Inputs & selects ──────────────────────────────────────── */
+
+input:not([type='checkbox']):not([type='radio']),
+select {
+  font-family: inherit;
+  font-size: 16px; /* prevent iOS zoom */
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--color-text);
+}
+
+input:not([type='checkbox']):not([type='radio']):focus,
+select:focus {
+  outline: 2px solid var(--color-nav-bg);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+input:not([type='checkbox']):not([type='radio']):disabled {
+  background: #f5f5f5;
+  color: var(--color-text-muted);
+}
+
+/* ── Error message ─────────────────────────────────────────── */
+
+.error-msg {
+  color: #b91c1c;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  background: #fef2f2;
+  border-radius: 6px;
+  border-left: 3px solid #b91c1c;
+  margin-bottom: 1rem;
+}
+
+/* ── Data tables ───────────────────────────────────────────── */
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.data-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  padding: 0.4rem 0.65rem;
+  border-bottom: 2px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 0.6rem 0.65rem;
+  border-bottom: 1px solid #eeeeee;
+  vertical-align: middle;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Join screen ───────────────────────────────────────────── */
+
+.join-screen {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 2rem;
+}
+
+.join-screen h1 {
+  font-size: 1.5rem;
+  color: var(--color-nav-bg);
+  margin-bottom: 2rem;
+}
+
+.join-screen h2 {
+  margin-bottom: 0.75rem;
+}
+
+/* ── Scorecard / screen stats ──────────────────────────────── */
+
+.stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.stat-item {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.stat-item strong {
+  color: var(--color-text);
+  font-weight: 600;
+  margin-right: 0.2rem;
+}
+
+/* ── Utility ───────────────────────────────────────────────── */
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.screen-meta {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}

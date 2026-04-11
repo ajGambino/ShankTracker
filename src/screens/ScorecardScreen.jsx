@@ -258,7 +258,7 @@ export default function ScorecardScreen() {
 		return (
 			<section>
 				<h1>Scorecard</h1>
-				<p>Loading...</p>
+				<p className='text-muted'>Loading...</p>
 			</section>
 		);
 	}
@@ -267,7 +267,7 @@ export default function ScorecardScreen() {
 		return (
 			<section>
 				<h1>Scorecard</h1>
-				<p>Error: {error}</p>
+				<p className='error-msg'>{error}</p>
 			</section>
 		);
 	}
@@ -276,43 +276,62 @@ export default function ScorecardScreen() {
 		return (
 			<section>
 				<h1>Scorecard</h1>
-				<p>Unable to load scorecard.</p>
+				<p className='text-muted'>Unable to load scorecard.</p>
 			</section>
 		);
 	}
 
 	return (
 		<section>
-			<header style={{ marginBottom: '1rem' }}>
+			<header style={{ marginBottom: '1.25rem' }}>
 				<h1>{player.name}</h1>
-				<p>
+				<p className='screen-meta'>
 					{round.name} — {round.courseName}
 				</p>
-				{round.date ? <p>Date: {round.date}</p> : null}
-				{round.teeTime ? <p>Tee Time: {round.teeTime}</p> : null}
-				<p>Declared Average: {player.declaredAverage}</p>
-				<p>Thru: {stats.isFinished ? 'F' : stats.thru}</p>
-				<p>
-					Today:{' '}
-					{formatRelativeScore(stats.todayVsPar, { decimals: 0 })}
-				</p>
-				<p>
-					Pace:{' '}
-					{formatRelativeScore(stats.pace, {
-						decimals: stats.thru > 0 && !stats.isFinished ? 1 : 0,
-					})}
-				</p>
-				<p>Actual Total: {stats.actualTotal}</p>
-				<p>Expected So Far: {stats.expectedSoFar.toFixed(1)}</p>
-				<p>Projected Total: {stats.projectedTotal.toFixed(1)}</p>
-				<p>
-					<Link to={`/round/${round.id}`}>Back to Round</Link>
-				</p>
+				{(round.date || round.teeTime) && (
+					<p className='screen-meta'>
+						{[round.date, round.teeTime && `Tee ${round.teeTime}`]
+							.filter(Boolean)
+							.join(' · ')}
+					</p>
+				)}
+
+				<div className='stat-row'>
+					<span className='stat-item'>
+						<strong>Thru</strong>{stats.isFinished ? 'F' : stats.thru}
+					</span>
+					<span className='stat-item'>
+						<strong>Today</strong>
+						{formatRelativeScore(stats.todayVsPar, { decimals: 0 })}
+					</span>
+					<span className='stat-item'>
+						<strong>Pace</strong>
+						{formatRelativeScore(stats.pace, {
+							decimals: stats.thru > 0 && !stats.isFinished ? 1 : 0,
+						})}
+					</span>
+					<span className='stat-item'>
+						<strong>Total</strong>{stats.actualTotal}
+					</span>
+					<span className='stat-item'>
+						<strong>Exp</strong>{stats.expectedSoFar.toFixed(1)}
+					</span>
+					<span className='stat-item'>
+						<strong>Proj</strong>{stats.projectedTotal.toFixed(1)}
+					</span>
+					<span className='stat-item'>
+						<strong>Avg</strong>{player.declaredAverage}
+					</span>
+				</div>
+
+				<Link to={`/round/${round.id}`} className='text-sm'>
+					← Back to Round
+				</Link>
 			</header>
 
-			{error ? <p>Error: {error}</p> : null}
+			{error ? <p className='error-msg'>{error}</p> : null}
 
-			<table cellPadding='8'>
+			<table className='data-table'>
 				<thead>
 					<tr>
 						<th>Hole</th>
@@ -328,7 +347,7 @@ export default function ScorecardScreen() {
 
 						return (
 							<tr key={index}>
-								<td>{index + 1}</td>
+								<td className='text-muted'>{index + 1}</td>
 								<td>{par}</td>
 								<td>
 									<input
@@ -351,14 +370,14 @@ export default function ScorecardScreen() {
 												});
 											}, 300);
 										}}
-										style={{ width: '70px', fontSize: '16px' }}
+										style={{ width: '70px' }}
 									/>
 								</td>
-								<td>
+								<td className='text-muted text-sm'>
 									{isSaving
 										? 'Saving...'
 										: score === null
-											? 'Not entered'
+											? '—'
 											: 'Saved'}
 								</td>
 							</tr>

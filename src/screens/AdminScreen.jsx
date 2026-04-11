@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { collection, doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { updateTrip } from '../services/trips';
-import { updateRound } from '../services/rounds';
 import { addPlayer, savePlayerAsAdmin } from '../services/players';
 
 const TRIP_ID = 'destin-2026';
@@ -90,18 +89,6 @@ export default function AdminScreen() {
 			unsubPlayers();
 		};
 	}, []);
-
-	const handleSetStandardCourse = async (roundId) => {
-		setError(null);
-		try {
-			await updateRound(TRIP_ID, roundId, {
-				holePars: Array(18).fill(4),
-				totalPar: 72,
-			});
-		} catch (err) {
-			setError(err.message);
-		}
-	};
 
 	const handleRoundChange = async (e) => {
 		setError(null);
@@ -192,7 +179,7 @@ export default function AdminScreen() {
 		return (
 			<section>
 				<h1>Admin</h1>
-				<p>Loading...</p>
+				<p className='text-muted'>Loading...</p>
 			</section>
 		);
 	}
@@ -201,40 +188,35 @@ export default function AdminScreen() {
 		<section>
 			<h1>Admin</h1>
 
-			{error ? <p>Error: {error}</p> : null}
+			{error ? <p className='error-msg'>{error}</p> : null}
 
 			<section style={{ marginBottom: '2rem' }}>
 				<h2>Trip Controls</h2>
 				{trip ? (
 					<>
-						<div style={{ marginBottom: '0.75rem' }}>
-							<label>
+						<div style={{ marginBottom: '1rem' }}>
+							<label style={{ display: 'block', marginBottom: '0.35rem', fontWeight: 500 }}>
 								Current Round{' '}
-								<small>— controls which round is shown across the app</small>
-								<br />
-								<select
-									value={trip.currentRoundId ?? ''}
-									onChange={handleRoundChange}
-									style={{ marginTop: '0.25rem' }}
-								>
-									<option value=''>— none —</option>
-									{rounds.map((r) => (
-										<option key={r.id} value={r.id}>
-											{r.name} — {r.courseName}
-										</option>
-									))}
-								</select>
+								<span className='text-muted text-sm'>— controls which round is shown across the app</span>
 							</label>
+							<select value={trip.currentRoundId ?? ''} onChange={handleRoundChange}>
+								<option value=''>— none —</option>
+								{rounds.map((r) => (
+									<option key={r.id} value={r.id}>
+										{r.name} — {r.courseName}
+									</option>
+								))}
+							</select>
 						</div>
+
 						{rounds.length > 0 && (
-							<div style={{ marginBottom: '0.75rem' }}>
-								<table cellPadding='6'>
+							<div style={{ marginBottom: '1rem', overflowX: 'auto' }}>
+								<table className='data-table'>
 									<thead>
 										<tr>
 											<th>Round</th>
 											<th>Course</th>
 											<th>Par</th>
-											<th></th>
 										</tr>
 									</thead>
 									<tbody>
@@ -243,127 +225,131 @@ export default function AdminScreen() {
 												<td>{r.name}</td>
 												<td>{r.courseName}</td>
 												<td>{r.totalPar ?? '—'}</td>
-												<td>
-													<button onClick={() => handleSetStandardCourse(r.id)}>
-														Set Standard Course
-													</button>
-												</td>
 											</tr>
 										))}
 									</tbody>
 								</table>
 							</div>
 						)}
-						<div>
-							<label>
-								<input
-									type='checkbox'
-									checked={trip.averagesLocked ?? false}
-									onChange={handleLockToggle}
-								/>{' '}
+
+						<label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+							<input
+								type='checkbox'
+								checked={trip.averagesLocked ?? false}
+								onChange={handleLockToggle}
+							/>
+							<span>
 								Lock Averages
-								{trip.averagesLocked ? (
-									<small> — players can no longer change declared averages</small>
-								) : null}
-							</label>
-						</div>
+								{trip.averagesLocked && (
+									<span className='text-muted text-sm'>
+										{' '}— players can no longer change declared averages
+									</span>
+								)}
+							</span>
+						</label>
 					</>
 				) : (
-					<p>Trip not found.</p>
+					<p className='text-muted'>Trip not found.</p>
 				)}
 			</section>
 
 			<section>
 				<h2>Players</h2>
-				<table cellPadding='6'>
-					<thead>
-						<tr>
-							<th>Name</th>
-							<th>Avg</th>
-							<th>Admin</th>
-							<th></th>
-						</tr>
-					</thead>
-					<tbody>
-						{players.map((p) => {
-							const draft = playerDrafts[p.id] ?? {};
-							return (
-								<tr key={p.id}>
-									<td>
-										<input
-											value={draft.name ?? ''}
-											onChange={(e) =>
-												handlePlayerDraftChange(p.id, 'name', e.target.value)
-											}
-											style={{ width: '140px', fontSize: '16px' }}
-										/>
-									</td>
-									<td>
-										<input
-											type='number'
-											value={draft.declaredAverage ?? ''}
-											onChange={(e) =>
-												handlePlayerDraftChange(
-													p.id,
-													'declaredAverage',
-													e.target.value,
-												)
-											}
-											disabled={trip?.averagesLocked ?? false}
-											style={{ width: '70px', fontSize: '16px' }}
-										/>
-									</td>
-									<td style={{ textAlign: 'center' }}>
-										<input
-											type='checkbox'
-											checked={draft.isAdmin ?? false}
-											onChange={(e) =>
-												handlePlayerDraftChange(p.id, 'isAdmin', e.target.checked)
-											}
-										/>
-									</td>
-									<td>
-										<button
-											onClick={() => handleSavePlayer(p.id)}
-											disabled={saving === p.id}
-										>
-											{saving === p.id ? 'Saving…' : 'Save'}
-										</button>
-									</td>
-								</tr>
-							);
-						})}
-					</tbody>
-				</table>
+				<div style={{ overflowX: 'auto', marginBottom: '1.5rem' }}>
+					<table className='data-table'>
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th>Avg</th>
+								<th>Admin</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							{players.map((p) => {
+								const draft = playerDrafts[p.id] ?? {};
+								return (
+									<tr key={p.id}>
+										<td>
+											<input
+												value={draft.name ?? ''}
+												onChange={(e) =>
+													handlePlayerDraftChange(p.id, 'name', e.target.value)
+												}
+												style={{ width: '140px' }}
+											/>
+										</td>
+										<td>
+											<input
+												type='number'
+												value={draft.declaredAverage ?? ''}
+												onChange={(e) =>
+													handlePlayerDraftChange(
+														p.id,
+														'declaredAverage',
+														e.target.value,
+													)
+												}
+												disabled={trip?.averagesLocked ?? false}
+												style={{ width: '70px' }}
+											/>
+										</td>
+										<td style={{ textAlign: 'center' }}>
+											<input
+												type='checkbox'
+												checked={draft.isAdmin ?? false}
+												onChange={(e) =>
+													handlePlayerDraftChange(p.id, 'isAdmin', e.target.checked)
+												}
+											/>
+										</td>
+										<td>
+											<button
+												onClick={() => handleSavePlayer(p.id)}
+												disabled={saving === p.id}
+											>
+												{saving === p.id ? 'Saving…' : 'Save'}
+											</button>
+										</td>
+									</tr>
+								);
+							})}
+						</tbody>
+					</table>
+				</div>
 
-				<h3 style={{ marginTop: '1.5rem' }}>Add Player</h3>
+				<h3>Add Player</h3>
 				<div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
 					<input
 						placeholder='Name'
 						value={newPlayer.name}
 						onChange={(e) => setNewPlayer((prev) => ({ ...prev, name: e.target.value }))}
-						style={{ fontSize: '16px' }}
+						style={{ flex: '1 1 140px' }}
 					/>
 					<input
 						type='number'
-						placeholder='Declared Average'
+						placeholder='Declared Avg'
 						value={newPlayer.declaredAverage}
 						onChange={(e) =>
 							setNewPlayer((prev) => ({ ...prev, declaredAverage: e.target.value }))
 						}
-						style={{ width: '150px', fontSize: '16px' }}
+						style={{ width: '120px' }}
 					/>
-					<label>
+					<label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', whiteSpace: 'nowrap' }}>
 						<input
 							type='checkbox'
 							checked={newPlayer.isAdmin}
 							onChange={(e) =>
 								setNewPlayer((prev) => ({ ...prev, isAdmin: e.target.checked }))
 							}
-						/>{' '}
+						/>
 						Admin
 					</label>
-					<button onClick={handleAddPlayer} disabled={saving === 'new'}>
+					<button
+						className='btn-primary'
+						onClick={handleAddPlayer}
+						disabled={saving === 'new'}
+					>
 						{saving === 'new' ? 'Adding…' : 'Add Player'}
 					</button>
 				</div>

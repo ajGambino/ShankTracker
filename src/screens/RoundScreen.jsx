@@ -88,7 +88,7 @@ export default function RoundScreen() {
 		return (
 			<section>
 				<h1>Round</h1>
-				<p>Error: {error}</p>
+				<p className='error-msg'>{error}</p>
 			</section>
 		);
 	}
@@ -97,7 +97,7 @@ export default function RoundScreen() {
 		return (
 			<section>
 				<h1>Round</h1>
-				<p>Loading...</p>
+				<p className='text-muted'>Loading...</p>
 			</section>
 		);
 	}
@@ -123,49 +123,67 @@ export default function RoundScreen() {
 
 	return (
 		<section>
-			<header>
+			<header style={{ marginBottom: '1.25rem' }}>
 				<h1>{round.name}</h1>
-				<p>{round.courseName}</p>
-				{round.date ? <p>Date: {round.date}</p> : null}
-				{round.teeTime ? <p>Tee Time: {round.teeTime}</p> : null}
-				<p>Trip: {trip.name}</p>
+				<p className='screen-meta'>{round.courseName}</p>
+				{(round.date || round.teeTime) && (
+					<p className='screen-meta'>
+						{[round.date, round.teeTime && `Tee ${round.teeTime}`]
+							.filter(Boolean)
+							.join(' · ')}
+					</p>
+				)}
+				{trip.name && <p className='screen-meta'>Trip: {trip.name}</p>}
 			</header>
 
-			{Array.isArray(round.holePars) && round.holePars.length > 0 ? (
-				<section>
-					<h2>Hole Pars</h2>
+			{Array.isArray(round.holePars) && round.holePars.length > 0 && (
+				<section style={{ marginBottom: '1.5rem' }}>
+					<h2>Course</h2>
 					<div style={{ overflowX: 'auto' }}>
-						<table cellPadding='8'>
+						<table className='data-table' style={{ minWidth: 'max-content' }}>
 							<thead>
 								<tr>
-									{round.holePars.map((_, index) => (
-										<th key={`hole-${index + 1}`}>{index + 1}</th>
+									<th>Hole</th>
+									{round.holePars.map((_, i) => (
+										<th key={i} style={{ textAlign: 'center' }}>{i + 1}</th>
 									))}
-									<th>Total</th>
+									<th style={{ textAlign: 'center' }}>Tot</th>
 								</tr>
 							</thead>
 							<tbody>
 								<tr>
-									{round.holePars.map((par, index) => (
-										<td key={`par-${index + 1}`}>{par}</td>
+									<td className='text-muted text-sm'>Par</td>
+									{round.holePars.map((par, i) => (
+										<td key={i} style={{ textAlign: 'center' }}>{par}</td>
 									))}
-									<td>{round.totalPar}</td>
+									<td style={{ textAlign: 'center', fontWeight: 600 }}>{round.totalPar}</td>
 								</tr>
+								{Array.isArray(round.holeYardages) && round.holeYardages.length === round.holePars.length && (
+									<tr>
+										<td className='text-muted text-sm'>Yds</td>
+										{round.holeYardages.map((yds, i) => (
+											<td key={i} style={{ textAlign: 'center' }}>{yds}</td>
+										))}
+										<td style={{ textAlign: 'center', fontWeight: 600 }}>
+											{round.holeYardages.reduce((a, b) => a + b, 0)}
+										</td>
+									</tr>
+								)}
 							</tbody>
 						</table>
 					</div>
 				</section>
-			) : null}
+			)}
 
 			<section>
 				<h2>Round Leaderboard</h2>
-				<table cellPadding='8'>
+				<table className='data-table'>
 					<thead>
 						<tr>
 							<th>#</th>
 							<th>Name</th>
 							<th>Thru</th>
-							<th>Today (to Par)</th>
+							<th>Today</th>
 							<th>Pace</th>
 							<th>Scorecard</th>
 						</tr>
@@ -173,14 +191,17 @@ export default function RoundScreen() {
 					<tbody>
 						{roundRows.map((row, index) => (
 							<tr key={row.playerId}>
-								<td>{index + 1}</td>
+								<td className='text-muted'>{index + 1}</td>
 								<td>{row.name}</td>
-								<td>{row.isFinished ? 'F' : row.thru}</td>
+								<td className='text-muted'>{row.isFinished ? 'F' : row.thru}</td>
 								<td>{row.todayDisplay}</td>
 								<td>{row.projectedDisplay}</td>
 								<td>
-									<Link to={`/scorecard/${round.id}/${row.playerId}`}>
-										Open
+									<Link
+										to={`/scorecard/${round.id}/${row.playerId}`}
+										className='text-sm'
+									>
+										Open →
 									</Link>
 								</td>
 							</tr>

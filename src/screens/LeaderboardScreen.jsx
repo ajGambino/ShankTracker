@@ -71,7 +71,7 @@ export default function LeaderboardScreen() {
 		return (
 			<section>
 				<h1>Leaderboard</h1>
-				<p>Error: {error}</p>
+				<p className='error-msg'>{error}</p>
 			</section>
 		);
 	}
@@ -80,7 +80,7 @@ export default function LeaderboardScreen() {
 		return (
 			<section>
 				<h1>Leaderboard</h1>
-				<p>Loading...</p>
+				<p className='text-muted'>Loading...</p>
 			</section>
 		);
 	}
@@ -94,18 +94,19 @@ export default function LeaderboardScreen() {
 
 	return (
 		<section>
-			<h1>Leaderboard</h1>
+			<header style={{ marginBottom: '1.25rem' }}>
+				<h1>Leaderboard</h1>
+				<Link to={`/round/${trip.currentRoundId}`} className='text-sm'>
+					View Current Round →
+				</Link>
+			</header>
 
-			<p>
-				<Link to={`/round/${trip.currentRoundId}`}>View Current Round</Link>
-			</p>
-
-			<table cellPadding='8'>
+			<table className='data-table'>
 				<thead>
 					<tr>
 						<th>#</th>
 						<th>Name</th>
-						<th>Total</th>
+						<th>Total (to Avg)</th>
 						<th>Thru</th>
 						<th>Today (to Par)</th>
 					</tr>
@@ -113,10 +114,10 @@ export default function LeaderboardScreen() {
 				<tbody>
 					{rows.map((row, index) => (
 						<tr key={row.playerId}>
-							<td>{index + 1}</td>
+							<td className='text-muted'>{index + 1}</td>
 							<td>{row.name}</td>
 							<td>{row.totalDisplay}</td>
-							<td>{row.isFinished ? 'F' : row.thru}</td>
+							<td className='text-muted'>{row.isFinished ? 'F' : row.thru}</td>
 							<td>{row.todayDisplay}</td>
 						</tr>
 					))}
