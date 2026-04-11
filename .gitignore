@@ -25,3 +25,4 @@ dist-ssr
 
 notes/
 .claude/
+scripts/serviceAccountKey.json

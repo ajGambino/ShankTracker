@@ -2,15 +2,16 @@ import { useEffect, useState } from 'react';
 import { collection, doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { signInWithGoogle, signOut } from '../lib/auth';
-import { updatePlayer } from '../services/players';
+import { claimPlayer } from '../services/players';
 import { useAuth } from '../context/AuthContext';
 
 export default function JoinScreen() {
 	const { user, tripId, setTripId } = useAuth();
 
 	const [step, setStep] = useState(() => {
-		if (!tripId) return 'enter-trip';
+		// Sign-in must come first — trip reads require authentication
 		if (!user) return 'sign-in';
+		if (!tripId) return 'enter-trip';
 		return 'claim-player';
 	});
 
@@ -20,12 +21,12 @@ export default function JoinScreen() {
 	const [claiming, setClaiming] = useState(null);
 	const [error, setError] = useState(null);
 
-	// Advance from sign-in step once auth resolves
+	// Advance from sign-in once auth resolves; go to enter-trip if no trip stored yet
 	useEffect(() => {
 		if (step === 'sign-in' && user) {
-			setStep('claim-player');
+			setStep(tripId ? 'claim-player' : 'enter-trip');
 		}
-	}, [step, user]);
+	}, [step, user, tripId]);
 
 	// Subscribe to unclaimed players when on claim step
 	useEffect(() => {
@@ -54,7 +55,7 @@ export default function JoinScreen() {
 				return;
 			}
 			setTripId(code);
-			setStep(user ? 'claim-player' : 'sign-in');
+			setStep('claim-player'); // user is always signed-in by the time this runs
 		} catch (err) {
 			setError(err.message);
 		} finally {
@@ -83,7 +84,7 @@ export default function JoinScreen() {
 		setError(null);
 		setClaiming(playerId);
 		try {
-			await updatePlayer(tripId, playerId, { authUid: user.uid });
+			await claimPlayer(tripId, playerId, user.uid);
 			// AuthContext detects authUid match → sets currentPlayer → AppRoutes redirects
 		} catch (err) {
 			setError(err.message);
@@ -94,7 +95,7 @@ export default function JoinScreen() {
 	const handleSignOut = async () => {
 		await signOut();
 		setTripId(null);
-		setStep('enter-trip');
+		setStep('sign-in'); // sign-in is now the first step
 	};
 
 	return (
@@ -126,29 +127,9 @@ export default function JoinScreen() {
 			{step === 'sign-in' && (
 				<>
 					<h2>Sign In</h2>
-					<p>
-						Trip: <strong>{tripId}</strong>
-					</p>
 					<button onClick={handleSignIn} disabled={loadingAction}>
 						{loadingAction ? 'Signing in…' : 'Sign in with Google'}
 					</button>
-					<p>
-						<button
-							onClick={() => {
-								setTripId(null);
-								setStep('enter-trip');
-							}}
-							style={{
-								background: 'none',
-								border: 'none',
-								cursor: 'pointer',
-								textDecoration: 'underline',
-								padding: 0,
-							}}
-						>
-							← Change trip code
-						</button>
-					</p>
 				</>
 			)}
 

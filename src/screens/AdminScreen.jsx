@@ -3,7 +3,7 @@ import { collection, doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { updateTrip } from '../services/trips';
 import { updateRound } from '../services/rounds';
-import { addPlayer, updatePlayer } from '../services/players';
+import { addPlayer, savePlayerAsAdmin } from '../services/players';
 
 const TRIP_ID = 'destin-2026';
 
@@ -142,14 +142,18 @@ export default function AdminScreen() {
 			return;
 		}
 
+		const player = players.find((p) => p.id === playerId);
+		if (!player) return;
+
 		setError(null);
 		setSaving(playerId);
 		try {
-			await updatePlayer(TRIP_ID, playerId, {
-				name: draft.name.trim(),
-				declaredAverage: avg,
-				isAdmin: draft.isAdmin,
-			});
+			await savePlayerAsAdmin(
+				TRIP_ID,
+				playerId,
+				{ name: draft.name.trim(), declaredAverage: avg, isAdmin: draft.isAdmin },
+				player,
+			);
 		} catch (err) {
 			setError(err.message);
 		} finally {
