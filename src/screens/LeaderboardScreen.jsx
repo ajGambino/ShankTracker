@@ -98,7 +98,8 @@ export default function LeaderboardScreen() {
 	return (
 		<section>
 			<header style={{ marginBottom: '1.25rem' }}>
-				<h1>Leaderboard</h1>
+				<h1>Beast Open 2026</h1>
+
 				<Link to={`/round/${trip.currentRoundId}`} className='text-sm'>
 					View Current Round →
 				</Link>
@@ -121,7 +122,9 @@ export default function LeaderboardScreen() {
 								<td className='text-muted'>{index + 1}</td>
 								<td>{row.name}</td>
 								<td className={scoreClass(row.totalRaw)}>{row.totalDisplay}</td>
-								<td className='text-muted'>{row.isFinished ? 'F' : row.thru}</td>
+								<td className='text-muted'>
+									{row.isFinished ? 'F' : row.thru}
+								</td>
 								<td className={scoreClass(row.todayRaw)}>{row.todayDisplay}</td>
 							</tr>
 						))}

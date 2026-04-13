@@ -291,17 +291,11 @@ export default function ScorecardScreen() {
 				<p className='screen-meta'>
 					{round.name} — {round.courseName}
 				</p>
-				{(round.date || round.teeTime) && (
-					<p className='screen-meta'>
-						{[round.date, round.teeTime && `Tee ${round.teeTime}`]
-							.filter(Boolean)
-							.join(' · ')}
-					</p>
-				)}
 
 				<div className='stat-row'>
 					<span className='stat-item'>
-						<strong>Thru</strong>{stats.isFinished ? 'F' : stats.thru}
+						<strong>Thru</strong>
+						{stats.isFinished ? 'F' : stats.thru}
 					</span>
 					<span className='stat-item'>
 						<strong>Today</strong>
@@ -318,16 +312,20 @@ export default function ScorecardScreen() {
 						</span>
 					</span>
 					<span className='stat-item'>
-						<strong>Total</strong>{stats.actualTotal}
+						<strong>Total</strong>
+						{stats.actualTotal}
 					</span>
 					<span className='stat-item'>
-						<strong>Exp</strong>{stats.expectedSoFar.toFixed(1)}
+						<strong>Exp</strong>
+						{stats.expectedSoFar.toFixed(1)}
 					</span>
 					<span className='stat-item'>
-						<strong>Proj</strong>{stats.projectedTotal.toFixed(1)}
+						<strong>Proj</strong>
+						{stats.projectedTotal.toFixed(1)}
 					</span>
 					<span className='stat-item'>
-						<strong>Avg</strong>{player.declaredAverage}
+						<strong>Avg</strong>
+						{player.declaredAverage}
 					</span>
 				</div>
 
@@ -339,60 +337,59 @@ export default function ScorecardScreen() {
 			{error ? <p className='error-msg'>{error}</p> : null}
 
 			<div className='section-card'>
-			<table className='data-table'>
-				<thead>
-					<tr>
-						<th>Hole</th>
-						<th>Par</th>
-						<th>Score</th>
-						<th>Status</th>
-					</tr>
-				</thead>
-				<tbody>
-					{(round.holePars?.length === 18 ? round.holePars : Array(18).fill(4)).map((par, index) => {
-						const score = holeScores[index];
-						const isSaving = savingHole === index;
+				<table className='data-table'>
+					<thead>
+						<tr>
+							<th>Hole</th>
+							<th>Par</th>
+							<th>Score</th>
+							<th>Status</th>
+						</tr>
+					</thead>
+					<tbody>
+						{(round.holePars?.length === 18
+							? round.holePars
+							: Array(18).fill(4)
+						).map((par, index) => {
+							const score = holeScores[index];
+							const isSaving = savingHole === index;
 
-						return (
-							<tr key={index}>
-								<td className='text-muted'>{index + 1}</td>
-								<td>{par}</td>
-								<td>
-									<input
-										type='number'
-										inputMode='numeric'
-										pattern='[0-9]*'
-										min='1'
-										max='15'
-										step='1'
-										value={draftScores[index]}
-										onChange={(e) => handleDraftChange(index, e.target.value)}
-										onBlur={() => saveHoleScore(index)}
-										disabled={!canEdit}
-										onFocus={(e) => {
-											e.target.select();
-											setTimeout(() => {
-												e.target.scrollIntoView({
-													behavior: 'smooth',
-													block: 'center',
-												});
-											}, 300);
-										}}
-										style={{ width: '70px' }}
-									/>
-								</td>
-								<td className='text-muted text-sm'>
-									{isSaving
-										? 'Saving...'
-										: score === null
-											? '—'
-											: 'Saved'}
-								</td>
-							</tr>
-						);
-					})}
-				</tbody>
-			</table>
+							return (
+								<tr key={index}>
+									<td className='text-muted'>{index + 1}</td>
+									<td>{par}</td>
+									<td>
+										<input
+											type='number'
+											inputMode='numeric'
+											pattern='[0-9]*'
+											min='1'
+											max='15'
+											step='1'
+											value={draftScores[index]}
+											onChange={(e) => handleDraftChange(index, e.target.value)}
+											onBlur={() => saveHoleScore(index)}
+											disabled={!canEdit}
+											onFocus={(e) => {
+												e.target.select();
+												setTimeout(() => {
+													e.target.scrollIntoView({
+														behavior: 'smooth',
+														block: 'center',
+													});
+												}, 300);
+											}}
+											style={{ width: '70px' }}
+										/>
+									</td>
+									<td className='text-muted text-sm'>
+										{isSaving ? 'Saving...' : score === null ? '—' : 'Saved'}
+									</td>
+								</tr>
+							);
+						})}
+					</tbody>
+				</table>
 			</div>
 		</section>
 	);
