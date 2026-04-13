@@ -6,6 +6,9 @@ import { buildLeaderboardRows } from '../utils/leaderboard';
 
 const TRIP_ID = 'destin-2026';
 
+const scoreClass = (raw) =>
+	raw < 0 ? 'score-under' : raw > 0 ? 'score-over' : 'score-even';
+
 export default function RoundScreen() {
 	const { roundId } = useParams();
 
@@ -97,7 +100,7 @@ export default function RoundScreen() {
 		return (
 			<section>
 				<h1>Round</h1>
-				<p className='text-muted'>Loading...</p>
+				<p className='text-muted loading-pulse'>Loading...</p>
 			</section>
 		);
 	}
@@ -137,7 +140,7 @@ export default function RoundScreen() {
 			</header>
 
 			{Array.isArray(round.holePars) && round.holePars.length > 0 && (
-				<section style={{ marginBottom: '1.5rem' }}>
+				<section className='section-card'>
 					<h2>Course</h2>
 					<div style={{ overflowX: 'auto' }}>
 						<table className='data-table' style={{ minWidth: 'max-content' }}>
@@ -175,7 +178,7 @@ export default function RoundScreen() {
 				</section>
 			)}
 
-			<section>
+			<section className='section-card'>
 				<h2>Round Leaderboard</h2>
 				<table className='data-table'>
 					<thead>
@@ -194,8 +197,8 @@ export default function RoundScreen() {
 								<td className='text-muted'>{index + 1}</td>
 								<td>{row.name}</td>
 								<td className='text-muted'>{row.isFinished ? 'F' : row.thru}</td>
-								<td>{row.todayDisplay}</td>
-								<td>{row.projectedDisplay}</td>
+								<td className={scoreClass(row.todayRaw)}>{row.todayDisplay}</td>
+								<td className={scoreClass(row.projectedRaw)}>{row.projectedDisplay}</td>
 								<td>
 									<Link
 										to={`/scorecard/${round.id}/${row.playerId}`}

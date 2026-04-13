@@ -179,7 +179,7 @@ export default function AdminScreen() {
 		return (
 			<section>
 				<h1>Admin</h1>
-				<p className='text-muted'>Loading...</p>
+				<p className='text-muted loading-pulse'>Loading...</p>
 			</section>
 		);
 	}
@@ -190,7 +190,7 @@ export default function AdminScreen() {
 
 			{error ? <p className='error-msg'>{error}</p> : null}
 
-			<section style={{ marginBottom: '2rem' }}>
+			<section className='section-card'>
 				<h2>Trip Controls</h2>
 				{trip ? (
 					<>
@@ -253,7 +253,7 @@ export default function AdminScreen() {
 				)}
 			</section>
 
-			<section>
+			<section className='section-card'>
 				<h2>Players</h2>
 				<div style={{ overflowX: 'auto', marginBottom: '1.5rem' }}>
 					<table className='data-table'>

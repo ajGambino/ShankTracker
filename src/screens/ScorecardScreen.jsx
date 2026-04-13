@@ -15,6 +15,9 @@ import {
 
 const TRIP_ID = 'destin-2026';
 
+const scoreClass = (raw) =>
+	raw < 0 ? 'score-under' : raw > 0 ? 'score-over' : 'score-even';
+
 function createEmptyHoleScores() {
 	return Array(18).fill(null);
 }
@@ -258,7 +261,7 @@ export default function ScorecardScreen() {
 		return (
 			<section>
 				<h1>Scorecard</h1>
-				<p className='text-muted'>Loading...</p>
+				<p className='text-muted loading-pulse'>Loading...</p>
 			</section>
 		);
 	}
@@ -302,13 +305,17 @@ export default function ScorecardScreen() {
 					</span>
 					<span className='stat-item'>
 						<strong>Today</strong>
-						{formatRelativeScore(stats.todayVsPar, { decimals: 0 })}
+						<span className={scoreClass(stats.todayVsPar)}>
+							{formatRelativeScore(stats.todayVsPar, { decimals: 0 })}
+						</span>
 					</span>
 					<span className='stat-item'>
 						<strong>Pace</strong>
-						{formatRelativeScore(stats.pace, {
-							decimals: stats.thru > 0 && !stats.isFinished ? 1 : 0,
-						})}
+						<span className={scoreClass(stats.pace)}>
+							{formatRelativeScore(stats.pace, {
+								decimals: stats.thru > 0 && !stats.isFinished ? 1 : 0,
+							})}
+						</span>
 					</span>
 					<span className='stat-item'>
 						<strong>Total</strong>{stats.actualTotal}
@@ -331,6 +338,7 @@ export default function ScorecardScreen() {
 
 			{error ? <p className='error-msg'>{error}</p> : null}
 
+			<div className='section-card'>
 			<table className='data-table'>
 				<thead>
 					<tr>
@@ -385,6 +393,7 @@ export default function ScorecardScreen() {
 					})}
 				</tbody>
 			</table>
+			</div>
 		</section>
 	);
 }

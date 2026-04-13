@@ -6,6 +6,9 @@ import { buildLeaderboardRows } from '../utils/leaderboard';
 
 const TRIP_ID = 'destin-2026';
 
+const scoreClass = (raw) =>
+	raw < 0 ? 'score-under' : raw > 0 ? 'score-over' : 'score-even';
+
 export default function LeaderboardScreen() {
 	const [trip, setTrip] = useState(null);
 	const [rounds, setRounds] = useState([]);
@@ -80,7 +83,7 @@ export default function LeaderboardScreen() {
 		return (
 			<section>
 				<h1>Leaderboard</h1>
-				<p className='text-muted'>Loading...</p>
+				<p className='text-muted loading-pulse'>Loading...</p>
 			</section>
 		);
 	}
@@ -101,28 +104,30 @@ export default function LeaderboardScreen() {
 				</Link>
 			</header>
 
-			<table className='data-table'>
-				<thead>
-					<tr>
-						<th>#</th>
-						<th>Name</th>
-						<th>Total (to Avg)</th>
-						<th>Thru</th>
-						<th>Today (to Par)</th>
-					</tr>
-				</thead>
-				<tbody>
-					{rows.map((row, index) => (
-						<tr key={row.playerId}>
-							<td className='text-muted'>{index + 1}</td>
-							<td>{row.name}</td>
-							<td>{row.totalDisplay}</td>
-							<td className='text-muted'>{row.isFinished ? 'F' : row.thru}</td>
-							<td>{row.todayDisplay}</td>
+			<div className='section-card'>
+				<table className='data-table'>
+					<thead>
+						<tr>
+							<th>#</th>
+							<th>Name</th>
+							<th>Total (to Avg)</th>
+							<th>Thru</th>
+							<th>Today (to Par)</th>
 						</tr>
-					))}
-				</tbody>
-			</table>
+					</thead>
+					<tbody>
+						{rows.map((row, index) => (
+							<tr key={row.playerId}>
+								<td className='text-muted'>{index + 1}</td>
+								<td>{row.name}</td>
+								<td className={scoreClass(row.totalRaw)}>{row.totalDisplay}</td>
+								<td className='text-muted'>{row.isFinished ? 'F' : row.thru}</td>
+								<td className={scoreClass(row.todayRaw)}>{row.todayDisplay}</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
 		</section>
 	);
 }
