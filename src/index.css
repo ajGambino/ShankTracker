@@ -170,6 +170,22 @@ input:not([type='checkbox']):not([type='radio']):disabled {
   background: #f9fafb;
 }
 
+.sortable-th:hover {
+  color: var(--color-text);
+}
+
+.sort-indicator {
+  display: inline-block;
+  margin-left: 0.25rem;
+  font-size: 0.65rem;
+  vertical-align: middle;
+  opacity: 1;
+}
+
+.sort-indicator.sort-inactive {
+  opacity: 0.3;
+}
+
 /* ── Join screen ───────────────────────────────────────────── */
 
 .join-screen {

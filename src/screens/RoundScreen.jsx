@@ -9,11 +9,34 @@ const TRIP_ID = 'destin-2026';
 const scoreClass = (raw) =>
 	raw < 0 ? 'score-under' : raw > 0 ? 'score-over' : 'score-even';
 
+const ROUND_COLUMNS = [
+	{ key: 'rank',         label: '#',        sortable: true  },
+	{ key: 'name',         label: 'Name',     sortable: true  },
+	{ key: 'thru',         label: 'Thru',     sortable: true  },
+	{ key: 'todayRaw',     label: 'Today',    sortable: true  },
+	{ key: 'projectedRaw', label: 'Pace',     sortable: true  },
+	{ key: 'scorecard',    label: 'Scorecard',sortable: false },
+];
+
+function sortRoundRows(rows, col, dir) {
+	return [...rows].sort((a, b) => {
+		const av = a[col];
+		const bv = b[col];
+		if (av == null && bv == null) return 0;
+		if (av == null) return 1;
+		if (bv == null) return -1;
+		const cmp = typeof av === 'string' ? av.localeCompare(bv) : av - bv;
+		return dir === 'asc' ? cmp : -cmp;
+	});
+}
+
 export default function RoundScreen() {
 	const { roundId } = useParams();
 
 	const [trip, setTrip] = useState(null);
 	const [round, setRound] = useState(null);
+	const [sortCol, setSortCol] = useState('todayRaw');
+	const [sortDir, setSortDir] = useState('asc');
 	const [rounds, setRounds] = useState([]);
 	const [players, setPlayers] = useState([]);
 	const [scorecards, setScorecards] = useState([]);
@@ -112,17 +135,30 @@ export default function RoundScreen() {
 		currentRoundId: roundId,
 	});
 
-	const roundRows = [...leaderboardRows].sort((a, b) => {
-		if (a.todayRaw !== b.todayRaw) {
-			return a.todayRaw - b.todayRaw;
-		}
+	// roundRows establishes the round leaderboard rank (today → pace → name)
+	const roundRows = [...leaderboardRows]
+		.sort((a, b) => {
+			if (a.todayRaw !== b.todayRaw) return a.todayRaw - b.todayRaw;
+			if (a.projectedRaw !== b.projectedRaw) return a.projectedRaw - b.projectedRaw;
+			return a.name.localeCompare(b.name);
+		})
+		.map((row, i) => ({ ...row, rank: i + 1 }));
 
-		if (a.projectedRaw !== b.projectedRaw) {
-			return a.projectedRaw - b.projectedRaw;
-		}
+	const displayRows = sortRoundRows(roundRows, sortCol, sortDir);
 
-		return a.name.localeCompare(b.name);
-	});
+	function handleSort(key) {
+		if (key === sortCol) {
+			setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+		} else {
+			setSortCol(key);
+			setSortDir('asc');
+		}
+	}
+
+	function SortIndicator({ colKey }) {
+		if (colKey !== sortCol) return <span className='sort-indicator sort-inactive'>↕</span>;
+		return <span className='sort-indicator'>{sortDir === 'asc' ? '↑' : '↓'}</span>;
+	}
 
 	return (
 		<section>
@@ -191,18 +227,26 @@ export default function RoundScreen() {
 				<table className='data-table'>
 					<thead>
 						<tr>
-							<th>#</th>
-							<th>Name</th>
-							<th>Thru</th>
-							<th>Today</th>
-							<th>Pace</th>
-							<th>Scorecard</th>
+							{ROUND_COLUMNS.map((col) =>
+								col.sortable ? (
+									<th
+										key={col.key}
+										onClick={() => handleSort(col.key)}
+										className='sortable-th'
+										style={{ cursor: 'pointer', userSelect: 'none' }}
+									>
+										{col.label} <SortIndicator colKey={col.key} />
+									</th>
+								) : (
+									<th key={col.key}>{col.label}</th>
+								)
+							)}
 						</tr>
 					</thead>
 					<tbody>
-						{roundRows.map((row, index) => (
+						{displayRows.map((row) => (
 							<tr key={row.playerId}>
-								<td className='text-muted'>{index + 1}</td>
+								<td className='text-muted'>{row.rank}</td>
 								<td>{row.name}</td>
 								<td className='text-muted'>
 									{row.isFinished ? 'F' : row.thru}

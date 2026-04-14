@@ -9,8 +9,30 @@ const TRIP_ID = 'destin-2026';
 const scoreClass = (raw) =>
 	raw < 0 ? 'score-under' : raw > 0 ? 'score-over' : 'score-even';
 
+const COLUMNS = [
+	{ key: 'rank',      label: '#',              numeric: true  },
+	{ key: 'name',      label: 'Name',           numeric: false },
+	{ key: 'totalRaw',  label: 'Total (to Avg)', numeric: true  },
+	{ key: 'thru',      label: 'Thru',           numeric: true  },
+	{ key: 'todayRaw',  label: 'Today (to Par)', numeric: true  },
+];
+
+function sortRows(rows, col, dir) {
+	return [...rows].sort((a, b) => {
+		const av = a[col];
+		const bv = b[col];
+		if (av == null && bv == null) return 0;
+		if (av == null) return 1;
+		if (bv == null) return -1;
+		const cmp = typeof av === 'string' ? av.localeCompare(bv) : av - bv;
+		return dir === 'asc' ? cmp : -cmp;
+	});
+}
+
 export default function LeaderboardScreen() {
 	const [trip, setTrip] = useState(null);
+	const [sortCol, setSortCol] = useState('totalRaw');
+	const [sortDir, setSortDir] = useState('asc');
 	const [rounds, setRounds] = useState([]);
 	const [players, setPlayers] = useState([]);
 	const [scorecards, setScorecards] = useState([]);
@@ -88,12 +110,29 @@ export default function LeaderboardScreen() {
 		);
 	}
 
+	// rows is already sorted by totalRaw (leaderboard rank)
 	const rows = buildLeaderboardRows({
 		players,
 		rounds,
 		scorecards,
 		currentRoundId: trip.currentRoundId,
-	});
+	}).map((row, i) => ({ ...row, rank: i + 1 }));
+
+	const displayRows = sortRows(rows, sortCol, sortDir);
+
+	function handleSort(key) {
+		if (key === sortCol) {
+			setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+		} else {
+			setSortCol(key);
+			setSortDir('asc');
+		}
+	}
+
+	function SortIndicator({ colKey }) {
+		if (colKey !== sortCol) return <span className='sort-indicator sort-inactive'>↕</span>;
+		return <span className='sort-indicator'>{sortDir === 'asc' ? '↑' : '↓'}</span>;
+	}
 
 	return (
 		<section>
@@ -109,17 +148,22 @@ export default function LeaderboardScreen() {
 				<table className='data-table'>
 					<thead>
 						<tr>
-							<th>#</th>
-							<th>Name</th>
-							<th>Total (to Avg)</th>
-							<th>Thru</th>
-							<th>Today (to Par)</th>
+							{COLUMNS.map((col) => (
+								<th
+									key={col.key}
+									onClick={() => handleSort(col.key)}
+									className='sortable-th'
+									style={{ cursor: 'pointer', userSelect: 'none' }}
+								>
+									{col.label} <SortIndicator colKey={col.key} />
+								</th>
+							))}
 						</tr>
 					</thead>
 					<tbody>
-						{rows.map((row, index) => (
+						{displayRows.map((row) => (
 							<tr key={row.playerId}>
-								<td className='text-muted'>{index + 1}</td>
+								<td className='text-muted'>{row.rank}</td>
 								<td>{row.name}</td>
 								<td className={scoreClass(row.totalRaw)}>{row.totalDisplay}</td>
 								<td className='text-muted'>
