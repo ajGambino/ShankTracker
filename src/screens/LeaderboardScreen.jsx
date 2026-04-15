@@ -10,11 +10,11 @@ const scoreClass = (raw) =>
 	raw < 0 ? 'score-under' : raw > 0 ? 'score-over' : 'score-even';
 
 const COLUMNS = [
-	{ key: 'rank',         label: '#'      },
-	{ key: 'name',         label: 'Name'   },
-	{ key: 'totalRaw',     label: 'Total'  },
-	{ key: 'thru',         label: 'Thru'   },
-	{ key: 'projectedRaw', label: 'Today'  },
+	{ key: 'rank', label: '#' },
+	{ key: 'name', label: 'Name' },
+	{ key: 'totalRaw', label: 'Total' },
+	{ key: 'thru', label: 'Thru' },
+	{ key: 'projectedRaw', label: 'Today' },
 ];
 
 function sortRows(rows, col, dir) {
@@ -130,15 +130,17 @@ export default function LeaderboardScreen() {
 	}
 
 	function SortIndicator({ colKey }) {
-		if (colKey !== sortCol) return <span className='sort-indicator sort-inactive'>↕</span>;
-		return <span className='sort-indicator'>{sortDir === 'asc' ? '↑' : '↓'}</span>;
+		if (colKey !== sortCol)
+			return <span className='sort-indicator sort-inactive'>↕</span>;
+		return (
+			<span className='sort-indicator'>{sortDir === 'asc' ? '↑' : '↓'}</span>
+		);
 	}
 
 	return (
 		<section>
 			<header style={{ marginBottom: '1.25rem' }}>
 				<h1>Beast Open 2026</h1>
-
 				<Link to={`/round/${trip.currentRoundId}`} className='text-sm'>
 					View Current Round →
 				</Link>
@@ -169,7 +171,9 @@ export default function LeaderboardScreen() {
 								<td className='text-muted'>
 									{row.isFinished ? 'F' : row.thru}
 								</td>
-								<td className={scoreClass(row.projectedRaw)}>{row.projectedDisplay}</td>
+								<td className={scoreClass(row.projectedRaw)}>
+									{row.projectedDisplay}
+								</td>
 							</tr>
 						))}
 					</tbody>
