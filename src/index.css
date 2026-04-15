@@ -267,6 +267,76 @@ input:not([type='checkbox']):not([type='radio']):disabled {
   color: var(--color-text-muted);
 }
 
+/* ── Player cards (mobile leaderboard) ────────────────────── */
+
+.player-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.player-card {
+  display: block;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  color: var(--color-text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: background 0.12s ease;
+}
+
+.player-card:active {
+  background: var(--color-content-bg);
+}
+
+.player-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.35rem;
+}
+
+.player-card-identity {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.player-card-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.player-card-primary {
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.player-card-sub {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.player-card-scorecard-hint {
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
+@media (min-width: 768px) {
+  .player-cards { display: none; }
+}
+
+@media (max-width: 767px) {
+  .leaderboard-table-wrap { display: none; }
+}
+
 /* ── Loading pulse ─────────────────────────────────────────── */
 
 @keyframes pulse-opacity {

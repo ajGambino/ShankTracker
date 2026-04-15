@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { doc, collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { buildLeaderboardRows } from '../utils/leaderboard';
+import { RoundPlayerCard } from '../components/PlayerCard';
 
 const TRIP_ID = 'destin-2026';
 
@@ -10,12 +11,12 @@ const scoreClass = (raw) =>
 	raw < 0 ? 'score-under' : raw > 0 ? 'score-over' : 'score-even';
 
 const ROUND_COLUMNS = [
-	{ key: 'rank',         label: '#',        sortable: true  },
-	{ key: 'name',         label: 'Name',     sortable: true  },
-	{ key: 'thru',         label: 'Thru',     sortable: true  },
-	{ key: 'todayRaw',     label: 'Score',    sortable: true  },
-	{ key: 'projectedRaw', label: 'Pace',     sortable: true  },
-	{ key: 'scorecard',    label: 'Scorecard',sortable: false },
+	{ key: 'rank', label: '#', sortable: true },
+	{ key: 'name', label: 'Name', sortable: true },
+	{ key: 'thru', label: 'Thru', sortable: true },
+	{ key: 'todayRaw', label: 'Score', sortable: true },
+	{ key: 'projectedRaw', label: 'Pace', sortable: true },
+	{ key: 'scorecard', label: 'Scorecard', sortable: false },
 ];
 
 function sortRoundRows(rows, col, dir) {
@@ -139,7 +140,8 @@ export default function RoundScreen() {
 	const roundRows = [...leaderboardRows]
 		.sort((a, b) => {
 			if (a.todayRaw !== b.todayRaw) return a.todayRaw - b.todayRaw;
-			if (a.projectedRaw !== b.projectedRaw) return a.projectedRaw - b.projectedRaw;
+			if (a.projectedRaw !== b.projectedRaw)
+				return a.projectedRaw - b.projectedRaw;
 			return a.name.localeCompare(b.name);
 		})
 		.map((row, i) => ({ ...row, rank: i + 1 }));
@@ -156,8 +158,11 @@ export default function RoundScreen() {
 	}
 
 	function SortIndicator({ colKey }) {
-		if (colKey !== sortCol) return <span className='sort-indicator sort-inactive'>↕</span>;
-		return <span className='sort-indicator'>{sortDir === 'asc' ? '↑' : '↓'}</span>;
+		if (colKey !== sortCol)
+			return <span className='sort-indicator sort-inactive'>↕</span>;
+		return (
+			<span className='sort-indicator'>{sortDir === 'asc' ? '↑' : '↓'}</span>
+		);
 	}
 
 	return (
@@ -224,49 +229,59 @@ export default function RoundScreen() {
 
 			<section className='section-card'>
 				<h2> Leaderboard</h2>
-				<table className='data-table'>
-					<thead>
-						<tr>
-							{ROUND_COLUMNS.map((col) =>
-								col.sortable ? (
-									<th
-										key={col.key}
-										onClick={() => handleSort(col.key)}
-										className='sortable-th'
-										style={{ cursor: 'pointer', userSelect: 'none' }}
-									>
-										{col.label} <SortIndicator colKey={col.key} />
-									</th>
-								) : (
-									<th key={col.key}>{col.label}</th>
-								)
-							)}
-						</tr>
-					</thead>
-					<tbody>
-						{displayRows.map((row) => (
-							<tr key={row.playerId}>
-								<td className='text-muted'>{row.rank}</td>
-								<td>{row.name}</td>
-								<td className='text-muted'>
-									{row.isFinished ? 'F' : row.thru}
-								</td>
-								<td className={scoreClass(row.todayRaw)}>{row.todayDisplay}</td>
-								<td className={scoreClass(row.projectedRaw)}>
-									{row.projectedDisplay}
-								</td>
-								<td>
-									<Link
-										to={`/scorecard/${round.id}/${row.playerId}`}
-										className='text-sm'
-									>
-										Open →
-									</Link>
-								</td>
+				<div className='leaderboard-table-wrap'>
+					<table className='data-table'>
+						<thead>
+							<tr>
+								{ROUND_COLUMNS.map((col) =>
+									col.sortable ? (
+										<th
+											key={col.key}
+											onClick={() => handleSort(col.key)}
+											className='sortable-th'
+											style={{ cursor: 'pointer', userSelect: 'none' }}
+										>
+											{col.label} <SortIndicator colKey={col.key} />
+										</th>
+									) : (
+										<th key={col.key}>{col.label}</th>
+									),
+								)}
 							</tr>
-						))}
-					</tbody>
-				</table>
+						</thead>
+						<tbody>
+							{displayRows.map((row) => (
+								<tr key={row.playerId}>
+									<td className='text-muted'>{row.rank}</td>
+									<td>{row.name}</td>
+									<td className='text-muted'>
+										{' '}
+										{row.isFinished ? 'F' : row.thru}
+									</td>
+									<td className={scoreClass(row.todayRaw)}>
+										{row.todayDisplay}
+									</td>
+									<td className={scoreClass(row.projectedRaw)}>
+										{row.projectedDisplay}
+									</td>
+									<td>
+										<Link
+											to={`/scorecard/${round.id}/${row.playerId}`}
+											className='text-sm'
+										>
+											Open →
+										</Link>
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+				<div className='player-cards'>
+					{displayRows.map((row) => (
+						<RoundPlayerCard key={row.playerId} row={row} roundId={round.id} />
+					))}
+				</div>
 			</section>
 		</section>
 	);
