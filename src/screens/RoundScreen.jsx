@@ -168,7 +168,31 @@ export default function RoundScreen() {
 	return (
 		<section>
 			<header style={{ marginBottom: '1.25rem' }}>
-				<h2>{round.name}</h2>
+				<div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+					<h2 style={{ margin: 0 }}>{round.name}</h2>
+					<nav style={{ display: 'flex', gap: '0.25rem' }}>
+						{[...rounds]
+							.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+							.map((r, i) => (
+								<Link
+									key={r.id}
+									to={`/round/${r.id}`}
+									style={{
+										fontSize: '0.78rem',
+										fontWeight: 600,
+										padding: '0.2rem 0.5rem',
+										borderRadius: '6px',
+										border: '1px solid var(--color-border)',
+										background: r.id === roundId ? 'var(--color-nav-bg)' : '#fff',
+										color: r.id === roundId ? '#fff' : 'var(--color-text-muted)',
+										textDecoration: 'none',
+									}}
+								>
+									R{i + 1}
+								</Link>
+							))}
+					</nav>
+				</div>
 
 				{(round.date || round.teeTime) && (
 					<p className='screen-meta'>
