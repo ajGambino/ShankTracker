@@ -13,7 +13,7 @@ const ROUND_COLUMNS = [
 	{ key: 'rank',         label: '#',        sortable: true  },
 	{ key: 'name',         label: 'Name',     sortable: true  },
 	{ key: 'thru',         label: 'Thru',     sortable: true  },
-	{ key: 'todayRaw',     label: 'Today',    sortable: true  },
+	{ key: 'todayRaw',     label: 'Score',    sortable: true  },
 	{ key: 'projectedRaw', label: 'Pace',     sortable: true  },
 	{ key: 'scorecard',    label: 'Scorecard',sortable: false },
 ];

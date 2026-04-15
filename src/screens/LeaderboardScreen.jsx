@@ -10,11 +10,11 @@ const scoreClass = (raw) =>
 	raw < 0 ? 'score-under' : raw > 0 ? 'score-over' : 'score-even';
 
 const COLUMNS = [
-	{ key: 'rank',      label: '#',              numeric: true  },
-	{ key: 'name',      label: 'Name',           numeric: false },
-	{ key: 'totalRaw',  label: 'Total (to Avg)', numeric: true  },
-	{ key: 'thru',      label: 'Thru',           numeric: true  },
-	{ key: 'todayRaw',  label: 'Today (to Par)', numeric: true  },
+	{ key: 'rank',         label: '#'      },
+	{ key: 'name',         label: 'Name'   },
+	{ key: 'totalRaw',     label: 'Total'  },
+	{ key: 'thru',         label: 'Thru'   },
+	{ key: 'projectedRaw', label: 'Today'  },
 ];
 
 function sortRows(rows, col, dir) {
@@ -169,7 +169,7 @@ export default function LeaderboardScreen() {
 								<td className='text-muted'>
 									{row.isFinished ? 'F' : row.thru}
 								</td>
-								<td className={scoreClass(row.todayRaw)}>{row.todayDisplay}</td>
+								<td className={scoreClass(row.projectedRaw)}>{row.projectedDisplay}</td>
 							</tr>
 						))}
 					</tbody>
