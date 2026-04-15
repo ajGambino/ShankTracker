@@ -27,20 +27,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const TRIP_ID = 'destin-2026'; // ← your Firestore trip document ID
 
-const TEE_SELECTION = {
-	gender: 'male', // 'male' | 'female'
-	index: 0, // 0 = first tee in that gender array
-};
-
 const ROUND_SCHEDULE = [
-	{ order: 1, courseKey: 'emeraldBay', date: '2026-05-13', teeTime: '08:32' },
-	{
-		order: 2,
-		courseKey: 'kellyPlantation',
-		date: '2026-05-14',
-		teeTime: '09:06',
-	},
-	{ order: 3, courseKey: 'regatta', date: '2026-05-15', teeTime: '09:36' },
+	{ order: 1, courseKey: 'emeraldBay',      date: '2026-05-13', teeTime: '08:32', gender: 'male', teeName: 'III'           },
+	{ order: 2, courseKey: 'kellyPlantation', date: '2026-05-14', teeTime: '09:06', gender: 'male', teeName: 'PALMETTO TEES' },
+	{ order: 3, courseKey: 'regatta',         date: '2026-05-15', teeTime: '09:36', gender: 'male', teeName: 'GOLD'          },
 ];
 
 // ─── COURSE JSON PATHS ────────────────────────────────────────────────────────
@@ -59,14 +49,15 @@ function loadCourseJson(filePath) {
 	return raw.courses ? raw.courses[0] : raw;
 }
 
-function getTeeData(courseJson, gender, index) {
+function getTeeData(courseJson, gender, teeName) {
 	const tees = courseJson.tees[gender];
 	if (!tees || tees.length === 0) throw new Error(`No ${gender} tees found`);
-	if (index >= tees.length)
+	const tee = tees.find((t) => t.tee_name === teeName);
+	if (!tee)
 		throw new Error(
-			`Tee index ${index} out of range (${tees.length} tees available)`,
+			`Tee "${teeName}" not found in ${gender} tees (available: ${tees.map((t) => t.tee_name).join(', ')})`,
 		);
-	return tees[index];
+	return tee;
 }
 
 // ─── FIREBASE ADMIN INIT ──────────────────────────────────────────────────────
@@ -93,11 +84,7 @@ async function main() {
 			);
 
 		const courseJson = loadCourseJson(jsonPath);
-		const tee = getTeeData(
-			courseJson,
-			TEE_SELECTION.gender,
-			TEE_SELECTION.index,
-		);
+		const tee = getTeeData(courseJson, entry.gender, entry.teeName);
 		const holePars = tee.holes.map((h) => h.par);
 		const holeYardages = tee.holes.map((h) => h.yardage);
 		const holeParsSum = holePars.reduce((a, b) => a + b, 0);
