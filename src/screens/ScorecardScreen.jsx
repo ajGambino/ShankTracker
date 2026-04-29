@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { useAuth } from '../context/AuthContext';
 import {
 	sumHoleScores,
 	sumCompletedHolePars,
@@ -38,8 +37,7 @@ function normalizeHoleScores(holeScores) {
 
 export default function ScorecardScreen() {
 	const { roundId, playerId } = useParams();
-	const { currentPlayer, isAdmin } = useAuth();
-	const canEdit = currentPlayer?.id === playerId || isAdmin;
+	const canEdit = true;
 
 	const [round, setRound] = useState(null);
 	const [player, setPlayer] = useState(null);

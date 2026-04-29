@@ -1,52 +1,20 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { collection, onSnapshot } from 'firebase/firestore';
-import { auth } from '../lib/auth';
-import { db } from '../lib/firebase';
+import { createContext, useContext } from 'react';
 
 const AuthContext = createContext(null);
 
-const TRIP_ID_KEY = 'shanktracker_tripId';
+const DEFAULT_TRIP_ID = 'destin-2026';
 
 export function AuthProvider({ children }) {
-	const [user, setUser] = useState(undefined); // undefined = still initializing
-	const [currentPlayer, setCurrentPlayer] = useState(null);
-	const [tripId, setTripIdState] = useState(
-		() => localStorage.getItem(TRIP_ID_KEY),
-	);
-
-	const setTripId = (id) => {
-		if (id) {
-			localStorage.setItem(TRIP_ID_KEY, id);
-		} else {
-			localStorage.removeItem(TRIP_ID_KEY);
-		}
-		setTripIdState(id);
-	};
-
-	useEffect(() => {
-		return onAuthStateChanged(auth, (firebaseUser) => {
-			setUser(firebaseUser ?? null);
-		});
-	}, []);
-
-	useEffect(() => {
-		if (!user || !tripId) {
-			setCurrentPlayer(null);
-			return;
-		}
-		return onSnapshot(collection(db, 'trips', tripId, 'players'), (snap) => {
-			const players = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-			setCurrentPlayer(players.find((p) => p.authUid === user.uid) ?? null);
-		});
-	}, [user, tripId]);
-
-	const isAdmin = currentPlayer?.isAdmin === true;
-	const loading = user === undefined;
-
 	return (
 		<AuthContext.Provider
-			value={{ user, loading, currentPlayer, isAdmin, tripId, setTripId }}
+			value={{
+				user: null,
+				loading: false,
+				currentPlayer: null,
+				isAdmin: false,
+				tripId: DEFAULT_TRIP_ID,
+				setTripId: () => {},
+			}}
 		>
 			{children}
 		</AuthContext.Provider>
