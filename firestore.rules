@@ -15,7 +15,7 @@ service cloud.firestore {
         allow read: if true;
         allow create, update, delete: if false;
       }
-
+ 
       match /scorecards/{scorecardId} {
         allow read: if true;
         allow create, update: if true;
