@@ -31,6 +31,7 @@ function sortRows(rows, col, dir) {
 
 export default function LeaderboardScreen() {
 	const [trip, setTrip] = useState(null);
+	const [selectedRoundId, setSelectedRoundId] = useState(null);
 	const [sortCol, setSortCol] = useState('totalRaw');
 	const [sortDir, setSortDir] = useState('asc');
 	const [rounds, setRounds] = useState([]);
@@ -110,12 +111,16 @@ export default function LeaderboardScreen() {
 		);
 	}
 
+	const sortedRounds = [...rounds].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+	const effectiveRoundId =
+		selectedRoundId ?? trip.currentRoundId ?? sortedRounds[0]?.id ?? null;
+
 	// rows is already sorted by totalRaw (leaderboard rank)
 	const rows = buildLeaderboardRows({
 		players,
 		rounds,
 		scorecards,
-		currentRoundId: trip.currentRoundId,
+		currentRoundId: effectiveRoundId,
 	}).map((row, i) => ({ ...row, rank: i + 1 }));
 
 	const displayRows = sortRows(rows, sortCol, sortDir);
@@ -141,9 +146,31 @@ export default function LeaderboardScreen() {
 		<section>
 			<header style={{ marginBottom: '1.25rem' }}>
 				<h1>Beast Open 2026</h1>
-				<Link to={`/round/${trip.currentRoundId}`} className='text-sm'>
-					View Current Round →
-				</Link>
+				<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+					{sortedRounds.map((r, i) => (
+						<button
+							key={r.id}
+							onClick={() => setSelectedRoundId(r.id)}
+							style={{
+								fontSize: '0.78rem',
+								fontWeight: 600,
+								padding: '0.2rem 0.5rem',
+								borderRadius: '6px',
+								border: '1px solid var(--color-border)',
+								background: r.id === effectiveRoundId ? 'var(--color-nav-bg)' : '#fff',
+								color: r.id === effectiveRoundId ? '#fff' : 'var(--color-text-muted)',
+								cursor: 'pointer',
+							}}
+						>
+							R{i + 1}
+						</button>
+					))}
+					{effectiveRoundId && (
+						<Link to={`/round/${effectiveRoundId}`} className='text-sm'>
+							View Round →
+						</Link>
+					)}
+				</div>
 			</header>
 
 			<div className='section-card'>

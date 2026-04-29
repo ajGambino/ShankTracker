@@ -42,7 +42,7 @@ export default function ScorecardScreen() {
 	const [round, setRound] = useState(null);
 	const [player, setPlayer] = useState(null);
 	const [holeScores, setHoleScores] = useState(createEmptyHoleScores());
-	const [draftScores, setDraftScores] = useState(createEmptyHoleScores());
+	const [draftScores, setDraftScores] = useState(Array(18).fill(''));
 	const [isExistingScorecard, setIsExistingScorecard] = useState(false);
 	const [loading, setLoading] = useState(true);
 	const [savingHole, setSavingHole] = useState(null);
@@ -190,7 +190,7 @@ export default function ScorecardScreen() {
 		if (!round || !player || !canEdit) return;
 
 		const rawValue = draftScores[holeIndex];
-		const parsed = rawValue === '' ? null : Number.parseInt(rawValue, 10);
+		const parsed = rawValue == null || rawValue === '' ? null : Number.parseInt(rawValue, 10);
 
 		if (
 			parsed !== null &&
