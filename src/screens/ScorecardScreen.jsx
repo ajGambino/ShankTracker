@@ -389,6 +389,10 @@ export default function ScorecardScreen() {
 					</tbody>
 				</table>
 			</div>
+
+			<Link to={`/round/${round.id}`} className='text-sm' style={{ display: 'inline-block', marginTop: '1rem' }}>
+				← Back to Round
+			</Link>
 		</section>
 	);
 }
