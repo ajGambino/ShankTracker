@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { collection, doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { updateTrip } from '../services/trips';
+import { updateRound } from '../services/rounds';
 import { addPlayer, savePlayerAsAdmin } from '../services/players';
 
 const TRIP_ID = 'destin-2026';
@@ -19,6 +20,9 @@ export default function AdminScreen() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [saving, setSaving] = useState(null);
+	const [foursomesRoundId, setFoursomesRoundId] = useState('');
+	const [groupDrafts, setGroupDrafts] = useState({});
+	const [savingGroups, setSavingGroups] = useState(false);
 
 	useEffect(() => {
 		const loaded = { trip: false, rounds: false, players: false };
@@ -89,6 +93,37 @@ export default function AdminScreen() {
 			unsubPlayers();
 		};
 	}, []);
+
+	useEffect(() => {
+		if (!foursomesRoundId) { setGroupDrafts({}); return; }
+		const round = rounds.find((r) => r.id === foursomesRoundId);
+		const foursomes = round?.foursomes ?? {};
+		const drafts = {};
+		for (const [group, playerIds] of Object.entries(foursomes)) {
+			for (const pid of playerIds) drafts[pid] = group;
+		}
+		for (const p of players) { if (!drafts[p.id]) drafts[p.id] = ''; }
+		setGroupDrafts(drafts);
+	}, [foursomesRoundId, rounds, players]);
+
+	const handleSaveGroups = async () => {
+		setSavingGroups(true);
+		setError(null);
+		const foursomes = { A: [], B: [], C: [], D: [] };
+		for (const [pid, group] of Object.entries(groupDrafts)) {
+			if (group && foursomes[group]) foursomes[group].push(pid);
+		}
+		for (const key of Object.keys(foursomes)) {
+			if (foursomes[key].length === 0) delete foursomes[key];
+		}
+		try {
+			await updateRound(TRIP_ID, foursomesRoundId, { foursomes });
+		} catch (err) {
+			setError(err.message);
+		} finally {
+			setSavingGroups(false);
+		}
+	};
 
 	const handleRoundChange = async (e) => {
 		setError(null);
@@ -353,6 +388,55 @@ export default function AdminScreen() {
 						{saving === 'new' ? 'Adding…' : 'Add Player'}
 					</button>
 				</div>
+			</section>
+
+			<section className='section-card'>
+				<h2>4somes</h2>
+				<div style={{ marginBottom: '1rem' }}>
+					<label style={{ display: 'block', marginBottom: '0.35rem', fontWeight: 500 }}>
+						Round
+					</label>
+					<select value={foursomesRoundId} onChange={(e) => setFoursomesRoundId(e.target.value)}>
+						<option value=''>— select round —</option>
+						{rounds.map((r) => (
+							<option key={r.id} value={r.id}>{r.name}</option>
+						))}
+					</select>
+				</div>
+
+				{foursomesRoundId && (
+					<>
+						<table className='data-table' style={{ marginBottom: '0.75rem' }}>
+							<thead>
+								<tr><th>Player</th><th>Group</th></tr>
+							</thead>
+							<tbody>
+								{players.map((p) => (
+									<tr key={p.id}>
+										<td>{p.name}</td>
+										<td>
+											<select
+												value={groupDrafts[p.id] ?? ''}
+												onChange={(e) =>
+													setGroupDrafts((prev) => ({ ...prev, [p.id]: e.target.value }))
+												}
+											>
+												<option value=''>—</option>
+												<option value='A'>A</option>
+												<option value='B'>B</option>
+												<option value='C'>C</option>
+												<option value='D'>D</option>
+											</select>
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+						<button onClick={handleSaveGroups} disabled={savingGroups}>
+							{savingGroups ? 'Saving…' : 'Save Groups'}
+						</button>
+					</>
+				)}
 			</section>
 		</section>
 	);

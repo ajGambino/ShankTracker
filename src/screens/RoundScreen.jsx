@@ -38,10 +38,13 @@ export default function RoundScreen() {
 	const [round, setRound] = useState(null);
 	const [sortCol, setSortCol] = useState('todayRaw');
 	const [sortDir, setSortDir] = useState('asc');
+	const [selectedGroup, setSelectedGroup] = useState('all');
 	const [rounds, setRounds] = useState([]);
 	const [players, setPlayers] = useState([]);
 	const [scorecards, setScorecards] = useState([]);
 	const [error, setError] = useState(null);
+
+	useEffect(() => { setSelectedGroup('all'); }, [roundId]);
 
 	useEffect(() => {
 		setError(null);
@@ -148,6 +151,13 @@ export default function RoundScreen() {
 
 	const displayRows = sortRoundRows(roundRows, sortCol, sortDir);
 
+	const foursomes = round.foursomes ?? {};
+	const configuredGroups = ['A', 'B', 'C', 'D'].filter((g) => foursomes[g]?.length > 0);
+	const filteredRows =
+		selectedGroup === 'all'
+			? displayRows
+			: displayRows.filter((row) => foursomes[selectedGroup]?.includes(row.playerId));
+
 	function handleSort(key) {
 		if (key === sortCol) {
 			setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -200,6 +210,18 @@ export default function RoundScreen() {
 							.filter(Boolean)
 							.join(' · ')}
 					</p>
+				)}
+
+				{configuredGroups.length > 0 && (
+					<div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+						<span style={{ fontWeight: 500, fontSize: '0.9rem' }}>Select foursome:</span>
+						<select value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)}>
+							<option value='all'>All Players</option>
+							{configuredGroups.map((g) => (
+								<option key={g} value={g}>Group {g}</option>
+							))}
+						</select>
+					</div>
 				)}
 			</header>
 
@@ -274,7 +296,7 @@ export default function RoundScreen() {
 							</tr>
 						</thead>
 						<tbody>
-							{displayRows.map((row) => (
+							{filteredRows.map((row) => (
 								<tr key={row.playerId}>
 									<td className='text-muted'>{row.rank}</td>
 									<td>{row.name}</td>
@@ -302,7 +324,7 @@ export default function RoundScreen() {
 					</table>
 				</div>
 				<div className='player-cards'>
-					{displayRows.map((row) => (
+					{filteredRows.map((row) => (
 						<RoundPlayerCard key={row.playerId} row={row} roundId={round.id} />
 					))}
 				</div>
