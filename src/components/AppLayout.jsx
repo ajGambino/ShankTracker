@@ -17,6 +17,9 @@ export default function AppLayout() {
 				<NavLink to={PATHS.LEADERBOARD} end className={navClass}>
 					Leaderboard
 				</NavLink>
+				<NavLink to={PATHS.ADMIN} className={navClass}>
+					Admin
+				</NavLink>
 			</nav>
 
 			<main className='app-content'>
