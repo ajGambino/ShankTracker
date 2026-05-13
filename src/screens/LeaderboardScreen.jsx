@@ -143,7 +143,7 @@ export default function LeaderboardScreen() {
 	return (
 		<section>
 			<header style={{ marginBottom: '1.25rem' }}>
-				<h1>Beast Open 2026</h1>
+				<h1>Soak Invitational</h1>
 				{effectiveRoundId && (
 					<Link to={`/round/${effectiveRoundId}`} className='text-sm'>
 						View Round →
