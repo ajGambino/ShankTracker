@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { doc, collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { buildLeaderboardRows } from '../utils/leaderboard';
+import { buildLeaderboardRows, formatRelativeScore } from '../utils/leaderboard';
 
 const TRIP_ID = 'destin-2026';
 
@@ -125,6 +125,18 @@ export default function LeaderboardScreen() {
 
 	const displayRows = sortRows(rows, sortCol, sortDir);
 
+	const playerTeamMap = Object.fromEntries(players.map((p) => [p.id, p.team ?? '']));
+	const teamTotals = rows.reduce(
+		(acc, row) => {
+			const team = playerTeamMap[row.playerId];
+			if (team === 'team1') acc.team1 += row.totalRaw;
+			if (team === 'team2') acc.team2 += row.totalRaw;
+			return acc;
+		},
+		{ team1: 0, team2: 0 },
+	);
+	const hasTeams = players.some((p) => p.team === 'team1' || p.team === 'team2');
+
 	function handleSort(key) {
 		if (key === sortCol) {
 			setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -152,6 +164,35 @@ export default function LeaderboardScreen() {
 					</Link>
 				)}
 			</header>
+
+			<div className='section-card' style={{ marginBottom: '1rem' }}>
+				<h2 style={{ marginTop: 0 }}>Team Standings</h2>
+				<table className='data-table'>
+					<thead>
+						<tr>
+							<th>#</th>
+							<th>Team</th>
+							<th>Score</th>
+						</tr>
+					</thead>
+					<tbody>
+						{[
+							{ label: 'Team 1', score: teamTotals.team1 },
+							{ label: 'Team 2', score: teamTotals.team2 },
+						]
+							.sort((a, b) => a.score - b.score)
+							.map((team, i) => (
+								<tr key={team.label}>
+									<td className='text-muted'>{i + 1}</td>
+									<td>{team.label}</td>
+									<td className={scoreClass(team.score)}>
+										{formatRelativeScore(team.score, { decimals: 1 })}
+									</td>
+								</tr>
+							))}
+					</tbody>
+				</table>
+			</div>
 
 			<div className='section-card'>
 				<table className='data-table'>

@@ -71,6 +71,7 @@ export default function AdminScreen() {
 								name: p.name ?? '',
 								declaredAverage: String(p.declaredAverage ?? ''),
 								isAdmin: p.isAdmin ?? false,
+								team: p.team ?? '',
 							};
 						}
 					}
@@ -173,7 +174,7 @@ export default function AdminScreen() {
 			await savePlayerAsAdmin(
 				TRIP_ID,
 				playerId,
-				{ name: draft.name.trim(), declaredAverage: avg, isAdmin: draft.isAdmin },
+				{ name: draft.name.trim(), declaredAverage: avg, isAdmin: draft.isAdmin, team: draft.team ?? '' },
 				player,
 			);
 		} catch (err) {
@@ -297,6 +298,7 @@ export default function AdminScreen() {
 								<th>Name</th>
 								<th>Avg</th>
 								<th>Admin</th>
+								<th>Team</th>
 								<th></th>
 							</tr>
 						</thead>
@@ -337,6 +339,18 @@ export default function AdminScreen() {
 													handlePlayerDraftChange(p.id, 'isAdmin', e.target.checked)
 												}
 											/>
+										</td>
+										<td>
+											<select
+												value={draft.team ?? ''}
+												onChange={(e) =>
+													handlePlayerDraftChange(p.id, 'team', e.target.value)
+												}
+											>
+												<option value=''>—</option>
+												<option value='team1'>Team 1</option>
+												<option value='team2'>Team 2</option>
+											</select>
 										</td>
 										<td>
 											<button
