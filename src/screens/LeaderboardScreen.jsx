@@ -110,7 +110,9 @@ export default function LeaderboardScreen() {
 		);
 	}
 
-	const sortedRounds = [...rounds].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+	const sortedRounds = [...rounds].sort(
+		(a, b) => (a.order ?? 0) - (b.order ?? 0),
+	);
 	const effectiveRoundId = trip.currentRoundId ?? sortedRounds[0]?.id ?? null;
 
 	// rows is already sorted by totalRaw (leaderboard rank)
@@ -143,7 +145,7 @@ export default function LeaderboardScreen() {
 	return (
 		<section>
 			<header style={{ marginBottom: '1.25rem' }}>
-				<h1>Soak Invitational</h1>
+				<h1>Soak Invitational 2026</h1>
 				{effectiveRoundId && (
 					<Link to={`/round/${effectiveRoundId}`} className='text-sm'>
 						View Round →
