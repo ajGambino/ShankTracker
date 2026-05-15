@@ -1,4 +1,4 @@
-import { addDoc, arrayRemove, arrayUnion, collection, doc, runTransaction, updateDoc, writeBatch } from 'firebase/firestore';
+import { addDoc, arrayRemove, arrayUnion, collection, deleteDoc, doc, runTransaction, updateDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 export function updatePlayer(tripId, playerId, data) {
@@ -52,4 +52,8 @@ export async function savePlayerAsAdmin(tripId, playerId, updates, existingPlaye
 	} else {
 		await updateDoc(playerRef, updates);
 	}
+}
+
+export function deletePlayer(tripId, playerId) {
+	return deleteDoc(doc(db, 'trips', tripId, 'players', playerId));
 }

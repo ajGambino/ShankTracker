@@ -3,7 +3,7 @@ import { collection, doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { updateTrip } from '../services/trips';
 import { updateRound } from '../services/rounds';
-import { addPlayer, savePlayerAsAdmin } from '../services/players';
+import { addPlayer, deletePlayer, savePlayerAsAdmin } from '../services/players';
 
 const TRIP_ID = 'destin-2026';
 
@@ -184,6 +184,16 @@ export default function AdminScreen() {
 		}
 	};
 
+	const handleDeletePlayer = async (playerId, playerName) => {
+		if (!window.confirm(`Are you sure you want to delete ${playerName}?`)) return;
+		setError(null);
+		try {
+			await deletePlayer(TRIP_ID, playerId);
+		} catch (err) {
+			setError(err.message);
+		}
+	};
+
 	const handleAddPlayer = async () => {
 		const avg = Number.parseFloat(newPlayer.declaredAverage);
 		if (!newPlayer.name.trim()) {
@@ -358,6 +368,12 @@ export default function AdminScreen() {
 												disabled={saving === p.id}
 											>
 												{saving === p.id ? 'Saving…' : 'Save'}
+											</button>
+											<button
+												onClick={() => handleDeletePlayer(p.id, p.name)}
+												style={{ marginLeft: '0.4rem', color: '#c0392b' }}
+											>
+												Delete
 											</button>
 										</td>
 									</tr>
